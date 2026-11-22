@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Excavation protection, exploded views | B/A The Rule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:#e7e0cf; --ink:#161616; --muted:#5d584f; --rule:rgba(22,22,22,.18);
+  --paper:#f1ebdd; --accent:#e8b400; --danger:#b8241b;
+  --btn:#161616; --btn-ink:#f1ebdd;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--page:#171614;--ink:#efe8d8;--muted:#a9a194;--rule:rgba(239,232,216,.18);--btn:#efe8d8;--btn-ink:#171614;--danger:#e0574c;color-scheme:dark}
+}
+:root[data-theme="dark"]{--page:#171614;--ink:#efe8d8;--muted:#a9a194;--rule:rgba(239,232,216,.18);--btn:#efe8d8;--btn-ink:#171614;--danger:#e0574c;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--page);color:var(--ink);overflow:hidden;
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+html[lang="ar"] body{font-family:"IBM Plex Sans Arabic","IBM Plex Sans",Tahoma,sans-serif}
+.app{height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:10px;padding:12px;max-width:1100px;margin:0 auto}
+header{display:flex;align-items:center;gap:12px}
+.tag{flex:none;width:40px;height:53px}
+#home{flex:none;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1.5px solid var(--ink);border-radius:6px;color:var(--ink);text-decoration:none}@media(hover:hover){#home:hover{background:var(--accent)}}#home:focus-visible{outline:3px solid var(--accent);outline-offset:2px}#home svg{width:22px;height:22px}
+
+.titles{flex:1;min-width:0}
+h1{margin:0;font-size:clamp(1.15rem,3.6vw,1.55rem);font-weight:700;line-height:1.15}
+.sub{margin:2px 0 0;font-size:.9rem;color:var(--muted);line-height:1.35}
+button{font:inherit;font-weight:600;font-size:.92rem;cursor:pointer;border:1.5px solid var(--ink);background:transparent;color:var(--ink);
+  border-radius:6px;padding:9px 14px;min-height:44px;line-height:1.1;transition:background .2s ease,color .2s ease}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.solid{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
+
+/* the drawing sheet stays paper in both themes: it is the drawing */
+.sheet{position:relative;min-height:0;overflow:hidden;border:1.5px solid #161616;border-radius:3px;color:#161616;
+  background-color:var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='150'%3E%3Ctext x='10' y='60' transform='rotate(-16 130 75)' font-family='Arial Black,Arial,sans-serif' font-weight='900' font-size='22' letter-spacing='3' fill='%23161616' fill-opacity='0.04'%3EB/A THE RULE%3C/text%3E%3C/svg%3E"),
+    linear-gradient(rgba(22,22,22,.065) 1px,transparent 1px),linear-gradient(90deg,rgba(22,22,22,.065) 1px,transparent 1px),
+    linear-gradient(rgba(22,22,22,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(22,22,22,.03) 1px,transparent 1px);
+  background-size:260px 150px,120px 120px,120px 120px,24px 24px,24px 24px}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+canvas.dragging{cursor:grabbing}
+.tools{position:absolute;top:10px;inset-inline-end:10px;display:flex;gap:6px;z-index:2}
+.tools button{background:var(--paper);color:#161616;border-color:#161616;min-height:38px;padding:6px 11px;font-size:.84rem}
+.tools button[aria-pressed="true"]{background:#161616;color:var(--paper)}
+.tb{position:absolute;bottom:10px;inset-inline-start:10px;z-index:2;display:flex;align-items:stretch;pointer-events:none;transition:opacity .3s ease}
+.tb .k{background:#161616;color:var(--paper);padding:6px 10px;display:grid;align-content:center}
+.tb .k b{font-size:1.05rem;line-height:1.1}
+.tb .k small{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:.7rem;opacity:.85;letter-spacing:.02em}
+.tb .n{border:1.5px solid #161616;border-inline-start:0;padding:0 9px;display:grid;place-items:center;font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;background:var(--paper)}
+.hint{position:absolute;bottom:14px;inset-inline-end:12px;z-index:2;font-size:.76rem;color:#4a463f;max-width:46%;text-align:end;pointer-events:none;transition:opacity .3s ease}
+
+.card{position:absolute;inset-inline:10px;bottom:10px;z-index:3;background:rgba(241,235,221,.97);border:1.5px solid #161616;border-radius:4px;
+  padding:12px 14px 12px;max-width:440px;transform:translateY(12px);opacity:0;pointer-events:none;transition:opacity .35s ease,transform .35s ease}
+.card.on{opacity:1;transform:none;pointer-events:auto}
+.ct{display:flex;align-items:center;gap:9px}
+.num{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;background:#161616;color:var(--paper);padding:1px 7px;border-radius:2px;flex:none}
+.nm{margin:0;font-size:1.12rem;font-weight:700;line-height:1.2}
+.nm2{font-size:.8rem;color:#5d584f;margin-inline-start:2px}
+.x{margin-inline-start:auto;min-height:34px;min-width:34px;padding:0;border-color:#161616;color:#161616;font-size:1.1rem}
+.does{margin:6px 0 0;font-size:.96rem;line-height:1.45}
+.chk{margin:8px 0 0;font-size:.96rem;line-height:1.45;display:flex;gap:8px}
+.chk b{flex:none;background:var(--accent);padding:0 6px;border-radius:2px;height:fit-content}
+.stop{color:#b8241b;font-weight:700}
+.card .chk{display:block}.card .chk b{display:inline-block;margin:0 6px 3px 0}
+#card{max-height:calc(100% - 20px);overflow:auto}
+@media (max-width:560px){.sub{font-size:.8rem;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}}
+.chk b.r-c{background:#161616;color:#f1ebdd}
+.chk b.r-e{background:#f1ebdd;color:#161616;outline:1.5px solid #161616;outline-offset:-1.5px;box-shadow:0 0 0 2px #f1ebdd,0 0 0 3.5px #161616}
+.crit{display:none;margin-inline-start:6px;font-size:.7rem;font-weight:700;color:#b8241b;border:1.5px solid #b8241b;border-radius:3px;padding:0 4px;vertical-align:2px}
+.crit.on{display:inline-block}
+.roles{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:7px}
+.roles li{font-size:.9rem;line-height:1.4;display:flex;gap:8px;align-items:flex-start}
+.roles li b{flex:none;padding:0 6px;border-radius:2px;font-size:.78rem}
+.stopl{margin:8px 0 0;font-size:.86rem;line-height:1.45}
+.stopl b{color:#b8241b}
+#info{max-height:calc(100% - 64px);overflow:auto}
+.sheet.focus .tb,.sheet.focus .hint{opacity:0}
+
+.duty{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.duty button{min-height:46px;padding:5px;border-color:#161616;color:#161616;font-size:.86rem}
+.duty button small{display:block;font-weight:500;font-size:.72rem;opacity:.75}
+.duty button[aria-pressed="true"]{background:#161616;color:#f1ebdd}
+.dims{display:flex;gap:10px;margin-top:8px}
+.dims label{flex:1;display:flex;align-items:center;gap:6px;font-size:.88rem;color:#161616}
+.dims input{width:100%;min-width:0;font:inherit;font-weight:600;padding:7px 8px;border:1.5px solid #161616;border-radius:4px;background:#fff;color:#161616}
+.dims i{font-style:normal;color:#5d584f}
+.kout b{font-size:1.25rem}
+.hist{position:absolute;inset:0;z-index:5;background:var(--paper);overflow:auto;padding:14px 14px 28px;color:#161616}
+.hist .intro{max-width:760px;margin:0 auto 12px;font-size:.95rem;line-height:1.5}
+.hist ol{list-style:none;margin:0 auto;padding:0;max-width:760px;position:relative}
+.hist ol:before{content:"";position:absolute;inset-inline-start:15px;top:6px;bottom:6px;width:2px;background:#161616}
+.hist li{position:relative;padding-inline-start:40px;margin-bottom:16px}
+.hist li:before{content:"";position:absolute;inset-inline-start:9px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--paper);border:2px solid #161616}
+.hist li.lesson:before{background:#b8241b;border-color:#b8241b}
+.hist .yr{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif;font-weight:700;font-size:.9rem;background:#161616;color:#f1ebdd;display:inline-block;padding:1px 8px;border-radius:2px}
+.hist .hc{display:grid;grid-template-columns:150px 1fr;gap:12px;margin-top:6px;background:rgba(255,255,255,.45);border:1.5px solid #161616;border-radius:4px;padding:10px}
+.hist .hc svg{width:150px;height:auto;display:block}
+.hist h3{margin:0;font-size:1.05rem}.hist h3 small{display:block;font-weight:500;font-size:.78rem;color:#5d584f;margin-top:1px}
+.hist p{margin:5px 0 0;font-size:.92rem;line-height:1.45}
+.hist .led{margin-top:7px;font-size:.88rem;display:flex;gap:7px;align-items:flex-start}
+.hist .led b{flex:none;background:#e8b400;padding:0 6px;border-radius:2px;font-size:.78rem}
+.hist li.lesson .led b{background:#b8241b;color:#fff}
+.hist .src{max-width:760px;margin:6px auto 0;font-size:.74rem;color:#5d584f;line-height:1.45}
+@media (max-width:520px){.hist .hc{grid-template-columns:1fr}.hist .hc svg{width:100%;max-width:220px}}
+.app.histmode .bar,.app.histmode .tools{visibility:hidden}
+.bar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bar.f{grid-template-columns:1fr 1fr 1.2fr}
+.bar #prev{display:none}.bar.f #prev{display:block}
+.bar button{width:100%}
+@media (min-width:900px){.app{padding:18px}.bar{max-width:640px;margin-inline-start:auto}.bar.f{max-width:640px}}
+.bar{grid-template-columns:1fr 1fr 1fr}.bar.f #useB{display:none}.bar.f{grid-template-columns:1fr 1fr 1.2fr}
+.bar button{padding-inline:8px}
+#useC{max-height:calc(100% - 64px);overflow:auto}
+.ul{margin:9px 0 0}.ul>b{display:inline-block;font-size:.78rem;padding:0 6px;border-radius:2px;margin-bottom:4px}
+.ul ul{margin:0;padding-inline-start:18px}.ul li{font-size:.92rem;line-height:1.42;margin:2px 0}
+.ul p{margin:0;font-size:.92rem;line-height:1.45}
+.ul+.ul{border-top:1.5px dashed rgba(22,22,22,.28);padding-top:9px;margin-top:10px}
+#uNote{margin-top:11px!important;padding:7px 9px;border:1.5px solid #161616;border-radius:4px;background:rgba(232,180,0,.16);color:#161616;font-size:.82rem;line-height:1.4}
+.alts{display:grid;gap:6px;margin-top:2px}
+.alts button{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:start;min-height:42px;padding:7px 10px;border-color:#161616;color:#161616;font-weight:500;font-size:.88rem;line-height:1.3;background:rgba(255,255,255,.4)}
+.alts button span:last-child{flex:none;font-weight:700;font-size:.82rem;white-space:nowrap}
+.alts button:hover{background:#161616;color:#f1ebdd}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.app{grid-template-rows:auto auto 1fr auto}
+.types{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.types::-webkit-scrollbar{display:none}
+.types button{flex:none;min-height:38px;padding:6px 12px;font-size:.86rem;border-color:var(--rule);border-width:1.5px}
+.types button[aria-current="true"]{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
+.hint{display:none}@media (min-width:560px){.hint{display:block}}
+.types button small{display:block;font-weight:500;font-size:.68rem;opacity:.7;margin-top:1px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a id="home" href="index.html" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.5V20h5v-6h3v6h5V9.5"/></svg></a>
+    <svg class="tag" viewBox="0 0 44 58" aria-label="B/A The Rule">
+      <path d="M5 3h34a2 2 0 0 1 2 2v48a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="#f1ebdd" stroke="#161616" stroke-width="2"/>
+      <circle cx="22" cy="11" r="3.6" fill="none" stroke="#161616" stroke-width="2"/>
+      <rect x="3" y="20" width="38" height="17" fill="#e8b400"/>
+      <text x="22" y="33" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="12.5" fill="#161616">B/A</text>
+      <text x="22" y="47" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="6.6" fill="#161616">THE RULE</text>
+    </svg>
+    <div class="titles"><h1 id="title"></h1><p class="sub" id="subtitle"></p></div>
+    <button id="lang"></button>
+  </header>
+  <nav class="types" id="types" aria-label="Excavation protection types"></nav>
+
+  <div class="sheet" id="sheet">
+    <canvas id="cv" aria-label="3D exploded drawing of a trench and its protective system"></canvas>
+    <div class="tools"><button id="turn" aria-pressed="true"></button><button id="reset"></button><button id="load"></button><button id="who"></button></div>
+    <div class="tb"><div class="k"><b id="tbName"></b><small id="tbSub"></small></div></div>
+    <div class="hint" id="hint"></div>
+    <div class="hist" id="hist" hidden></div>
+    <div class="card calc" id="calc" aria-live="polite">
+      <div class="ct"><h2 class="nm" id="kT"></h2><button class="x" id="kClose" aria-label="Close">×</button></div>
+      <div class="duty" id="kDuty"></div>
+      <div class="dims"><label><span id="kL"></span><input id="kLen" type="number" inputmode="decimal" step="0.1" min="0.5" max="12" value="2.4"><i class="u">m</i></label>
+        <label><span id="kW"></span><input id="kWid" type="number" inputmode="decimal" step="0.1" min="0.3" max="5" value="1.0"><i class="u">m</i></label></div>
+      <p class="does kout" id="kOut"></p>
+      <p class="nm2" id="kNote"></p>
+    </div>
+    <div class="card calc" id="info" aria-live="polite">
+      <div class="ct"><h2 class="nm" id="iT"></h2><button class="x" id="iClose" aria-label="Close">×</button></div>
+      <ul class="roles" id="iRoles"></ul>
+      <p class="stopl" id="iStop"></p>
+      <p class="nm2" id="iEx" style="margin-top:8px"></p>
+    </div>
+    <div class="card calc" id="useC" aria-live="polite">
+      <div class="ct"><h2 class="nm" id="uT"></h2><button class="x" id="uClose" aria-label="Close">×</button></div>
+      <div id="uBody"></div>
+      <p class="nm2" id="uNote" style="margin-top:9px"></p>
+    </div>
+    <div class="card" id="card" aria-live="polite">
+      <div class="ct"><span class="num" id="cNum"></span><div><h2 class="nm" id="cName"></h2><span class="crit" id="cCrit"></span><span class="nm2" id="cName2"></span></div><button class="x" id="close" aria-label="Close">×</button></div>
+      <p class="does" id="cDoes"></p>
+      <p class="chk" id="cYou" hidden><b class="role r-u"></b><span></span></p>
+      <p class="chk"><b id="cChkL" class="role"></b><span><span id="cChk"></span> <span class="stop" id="cStop"></span></span></p>
+    </div>
+  </div>
+
+  <div class="bar" id="bar">
+    <button id="prev"></button>
+    <button id="useB" aria-pressed="false"></button>
+    <button id="next"></button>
+    <button id="explode" class="solid"></button>
+  </div>
+</div>
+
+<script>
+(()=>{
+"use strict";
+const T={
+  en:{title:"Excavations",hint:"Drag to turn. Pinch or scroll to zoom. Tap a layer.",turn:"Turn",reset:"Reset",
+    apart:"Pull apart",together:"Put together",start:"Start the check",next:"Next layer",back:"Back",done:"Finish",again:"Check again",
+    check:"Check",lang:"عربي",elev:"Front elevation"},
+  ar:{title:"الحفريات",hint:"اسحب عشان تلفّها. قرّب بأصبعين أو بعجلة الماوس. اضغط على أي طبقة.",turn:"لف",reset:"رجّع",
+    apart:"فكّ الطبقات",together:"ركّب الطبقات",start:"ابدأ الفحص",next:"الطبقة الجاية",back:"السابقة",done:"خلصت",again:"افحص من جديد",
+    check:"افحص",lang:"English",elev:"منظر أمامي"}
+};
+/* shared layer texts */
+const TX={
+  guard:{en:["Guardrails and toe boards","Stop people and tools falling from the open edges.","Heights as the applicable standard and site procedure require (OSHA 1926.451(g)(4)(ii): generally 38–45 in, subject to its conditions). Mid rail about halfway, toe board on every open side. Where materials could fall on people below, add screening, barricades or overhead protection (OSHA 1926.451(h))."],
+         ar:["الدرابزين وحاجز القدم","يمنعون الناس والعدّة يطيحون من الأطراف المفتوحة.","الارتفاعات حسب المواصفة المطبّقة وإجراءات الموقع (‏OSHA 1926.451(g)(4)(ii): بشكل عام من 38 إلى 45 إنش، حسب شروطها). الدرابزين الوسطي تقريبًا في النص، وحاجز قدم على كل جهة مفتوحة. وإذا ممكن تطيح أغراض على الناس تحت، أضف شبك أو حواجز أو حماية من فوق (OSHA 1926.451(h))."]},
+  guardDrop:{en:["Guardrails, toe boards and drop bar","Stop people and tools falling. The drop bar closes the access opening.","Rails and toe board on every open side. The drop bar, hung on a false upright, falls shut by itself."],
+         ar:["الدرابزين وحاجز القدم والبوابة","يمنعون الناس والعدّة يطيحون، والبوابة تسكّر فتحة الدخول.","درابزين وحاجز قدم على كل جهة مفتوحة، والبوابة المعلّقة على عمود جانبي تنزل وتتسكّر لحالها."]},
+  ladder:{en:["Access ladder","The safe way up. Never climb the frame.","Tied at the top and bottom, side rails at least 3 ft (0.9 m) above the landing; many sites ask for 1 m. Leaning ladders only: 4 up for every 1 out."],
+          ar:["سلّم الصعود","الطريقة الآمنة للطلوع. لا تتسلّق السقالة نفسها.","مربوط من فوق وتحت، وجوانبه طالعة 0.9 م (3 قدم) على الأقل فوق المنصة، ومواقع كثير تطلب متر. السلّم المسنود بس: كل 4 لفوق، 1 لبرّا."]},
+  tag:{en:["Scaffold tag","Shows the scaffold’s inspection and authorisation status, including any limits on use.","Green tag: inspected and released for use under the conditions written on it. Still check its date, the scaffold’s condition and the allowed load. Yellow tag: restricted, only as the site procedure and inspector allow.","Red tag or no tag: do not use."],
+       ar:["بطاقة السقالة","توضح حالة فحص السقالة والسماح باستخدامها، وأي قيود عليها.","البطاقة الخضراء: مفحوصة ومسموح استخدامها حسب الشروط المكتوبة عليها، ومع كذا افحص تاريخها وحالة السقالة والحمل المسموح. البطاقة الصفراء: استخدام مقيّد، بس حسب إجراءات الموقع وموافقة المفتش.","بطاقة حمراء أو ما فيه بطاقة: لا تستخدمها."]},
+  base:{en:["Sole boards and base plates","Spread the load into the ground under every standard.","Ground or surface confirmed to carry the load: no soft spots, voids or washout. Base plates and sole boards as the design requires. Base area barricaded."],
+        ar:["ألواح القاعدة والقواعد","توزّع الحمل على الأرض تحت كل عمود.","الأرض أو السطح متأكدين إنه يتحمّل الحمل: ما فيه أماكن رخوة أو فراغات أو تجريف. القواعد وألواح القاعدة حسب التصميم، والمنطقة حول القاعدة محاوطة."]},
+  boards:{en:["Platform boards","The surface you stand and work on.","Fully boarded with no gaps. Overhang and support as the standard and maker require. Boards not split or warped, and secured so they can’t slide or lift.","Never stand on boxes, barrels or other makeshift devices to gain height."],
+          ar:["ألواح المنصة","المكان اللي توقف وتشتغل عليه.","مغطّاة كاملة بدون فراغات، والبروز والإسناد حسب المواصفة والشركة المصنّعة، والألواح مو مشقوقة ولا معوجة، ومثبّتة عشان ما تزحف ولا ترتفع.","لا توقف على صناديق أو براميل أو أي شي مرتجل عشان تعلى."]},
+  ties:{en:["Ties","Hold the scaffold to the building so it cannot fall away from the wall.","In place at the spacing on the design.","Never remove a tie without approval."],
+        ar:["الربطات","تربط السقالة بالمبنى عشان ما تطيح بعيد عن الجدار.","موجودة بالمسافات اللي في التصميم.","لا تفك أي ربطة بدون موافقة."]}
+};
+
+/* math */
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],mul=(a,s)=>[a[0]*s,a[1]*s,a[2]*s];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const len=a=>Math.hypot(a[0],a[1],a[2]),nrm=a=>{const l=len(a)||1;return [a[0]/l,a[1]/l,a[2]/l]};
+const lerp=(a,b,t)=>a+(b-a)*t,lerp3=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,TAU=Math.PI*2;
+
+/* ---------- geometry kit ---------- */
+let LAY,CTX;
+function G(id,off){const g={off,prims:[]};LAY[id-1].groups.push(g);return g}
+const tube=(g,a,b,r=.024,kind)=>g.prims.push({k:"t",a,b,r,kind});
+function boxP(g,c,s,kind="board",lines=0,axis=0){
+  const [hx,hy,hz]=s.map(v=>v/2);const P=[];
+  for(const x of[-hx,hx])for(const y of[-hy,hy])for(const z of[-hz,hz])P.push([c[0]+x,c[1]+y,c[2]+z]);
+  for(const q of[[0,1,3,2],[4,6,7,5],[0,4,5,1],[2,3,7,6],[0,2,6,4],[1,5,7,3]])g.prims.push({k:"p",pts:q.map(i=>P[i]),ref:c,kind});
+  for(let i=1;i<=lines;i++){const f=i/(lines+1);
+    if(axis===0)g.prims.push({k:"s",a:[c[0]-hx*.96,c[1]+hy+.001,c[2]-hz+2*hz*f],b:[c[0]+hx*.96,c[1]+hy+.001,c[2]-hz+2*hz*f],st:"grain"});
+    else g.prims.push({k:"s",a:[c[0]-hx+2*hx*f,c[1]+hy+.001,c[2]-hz*.96],b:[c[0]-hx+2*hx*f,c[1]+hy+.001,c[2]+hz*.96],st:"grain"});}
+}
+function rosette(g,c,r=.055){const pts=[];for(let i=0;i<16;i++){const a=i/16*TAU,rr=i%2?r*.78:r;pts.push([c[0]+rr*Math.cos(a),c[1],c[2]+rr*Math.sin(a)])}g.prims.push({k:"l",pts})}
+const coupler=(g,c,s=.06)=>boxP(g,c,[s,s,s],"steel");
+function disc(g,c,r,axis="z",kind="dark"){const pts=[];for(let i=0;i<14;i++){const a=i/14*TAU;
+  pts.push(axis==="y"?[c[0]+r*Math.cos(a),c[1],c[2]+r*Math.sin(a)]:axis==="z"?[c[0]+r*Math.cos(a),c[1]+r*Math.sin(a),c[2]]:[c[0],c[1]+r*Math.sin(a),c[2]+r*Math.cos(a)])}
+  g.prims.push({k:"p",pts,ref:axis==="y"?[c[0],c[1]-1,c[2]]:axis==="z"?[c[0],c[1],c[2]-1]:[c[0]-1,c[1],c[2]],kind,two:1})}
+function ladder(g,x,zc,y0,y1,ties=[],tx){for(const z of[zc-.21,zc+.21])tube(g,[x,y0,z],[x,y1,z],.021);
+  for(let y=y0+.3;y<y1-.05;y+=.3)tube(g,[x,y,zc-.21],[x,y,zc+.21],.013);
+  for(const y of ties)for(const z of[zc-.21,zc+.21])tube(g,[x,y,z],[tx,y,zc+(z-zc)*2.4],.015)}
+/* tag in a plane facing along ±x (sx) or ±z (sz) */
+function tagAt(g,c,face){const [x,y,z]=c;const P=(u,v)=>face==="x"?[x,y+v,z+u]:[x+u,y+v,z];const ref=face==="x"?[x+.05,y,z]:[x,y,z-.05];
+  const quad=(u0,u1,v0,v1)=>[P(u0,v0),P(u1,v0),P(u1,v1),P(u0,v1)];
+  g.prims.push({k:"p",pts:quad(-.07,.07,-.13,.13),ref,kind:"tag",e:1,two:1});
+  g.prims.push({k:"p",pts:quad(-.07,.07,.05,.1),ref,kind:"tagband",two:1});
+  for(let i=0;i<4;i++){const v=.01-i*.03;g.prims.push({k:"s",a:P(-.05,v),b:P(i===3?.01:.05,v),st:"ink"})}}
+const ctxL=(a,b)=>CTX.push([a,b]);
+function ctxRect(pts){for(let i=0;i<pts.length;i++)ctxL(pts[i],pts[(i+1)%pts.length])}
+
+/* ---------- excavation types ---------- */
+const XA=-3,XB=3,GD=2.4;
+function prof(edge,p){return p}
+function earth(g,P,GW,YB){
+  // P: [[z,y],...] from top edge (y=0) down to toe (y=-GD), +z side; mirrored for -z
+  const xs=[];for(let i=0;i<=6;i++)xs.push(XA+(XB-XA)*i/6);
+  const E=P[0][0],b=P[P.length-1][0];
+  for(const s of[-1,1]){
+    g.prims.push({k:"p",pts:[[XA,0,s*E],[XB,0,s*E],[XB,0,s*GW],[XA,0,s*GW]],ref:[0,-1,s*(E+GW)/2],kind:"soil",e:1});
+    for(let i=0;i<P.length-1;i++){const [z1,y1]=P[i],[z2,y2]=P[i+1];
+      for(let k=0;k<6;k++){const x0=xs[k],x1=xs[k+1];const mid=[(x0+x1)/2,(y1+y2)/2,s*(z1+z2)/2];
+        g.prims.push({k:"p",pts:[[x0,y1,s*z1],[x1,y1,s*z1],[x1,y2,s*z2],[x0,y2,s*z2]],ref:add(mid,[0,-.5,s*.5]),kind:"soil",e:0})}
+      g.prims.push({k:"s",a:[XA,y1,s*z1],b:[XB,y1,s*z1],st:"ink"})}
+    g.prims.push({k:"s",a:[XA,-GD,s*b],b:[XB,-GD,s*b],st:"ink"});
+    // soil texture on the visible wall
+    for(let k=1;k<6;k++){const x=xs[k];for(let i=0;i<P.length-1;i++){const [z1,y1]=P[i],[z2,y2]=P[i+1];
+      g.prims.push({k:"s",a:[x,y1-.08,s*z1],b:[x+.1,y2+.08,s*z2],st:"grain"})}}
+  }
+  for(let k=0;k<6;k++){const x0=xs[k],x1=xs[k+1];g.prims.push({k:"p",pts:[[x0,-GD,-b],[x1,-GD,-b],[x1,-GD,b],[x0,-GD,b]],ref:[(x0+x1)/2,-GD-1,0],kind:"floor",e:0})}
+  // cut sections at both ends
+  const outline=[[0,-GW],[0,-E]];for(let i=1;i<P.length;i++)outline.push([P[i][1],-P[i][0]]);
+  for(let i=P.length-1;i>=1;i--)outline.push([P[i][1],P[i][0]]);outline.push([0,E],[0,GW],[YB,GW],[YB,-GW]);
+  for(const x of[XA,XB])g.prims.push({k:"p",pts:outline.map(([y,z])=>[x,y,z]),ref:[x-Math.sign(x),-1.5,GW-.2],kind:"section",e:1});
+  for(const s of[-1,1])g.prims.push({k:"p",pts:[[XA,0,s*GW],[XB,0,s*GW],[XB,YB,s*GW],[XA,YB,s*GW]],ref:[0,-1,0],kind:"section",e:1});
+}
+function halfAt(P,y){for(let i=0;i<P.length-1;i++){const [z1,y1]=P[i],[z2,y2]=P[i+1];if(y<=y1&&y>=y2){return y1===y2?Math.min(z1,z2):lerp(z1,z2,(y1-y)/(y1-y2))}}return P[P.length-1][0]}
+function ladder2(g,p0,p1,w=.42){const d=sub(p1,p0),L=len(d),u=mul(d,1/L),side=[1,0,0];
+  for(const s of[-1,1])tube(g,add(p0,mul(side,s*w/2)),add(p1,mul(side,s*w/2)),.021);
+  for(let t=.3;t<L-.05;t+=.3){const c=add(p0,mul(u,t));tube(g,add(c,mul(side,-w/2)),add(c,mul(side,w/2)),.013)}}
+function stairOnSlope(g,x,P){const E=P[0][0],b=P[P.length-1][0];const n=9;
+  for(let i=0;i<n;i++){const t=(i+.5)/n;const y=-GD+GD*t,z=-(b+(E-b)*t);boxP(g,[x,y+.02,z+.03],[.8,.05,.3],"board")}
+  for(const s of[-1,1]){const xx=x+s*.45;tube(g,[xx,-GD+.9,-b-.05],[xx,.9,-E-.05],.02);
+    for(const t of[.05,.5,.95]){const y=-GD+GD*t,z=-(b+(E-b)*t);tube(g,[xx,y,z],[xx,y+.9,z],.018)}}}
+/* shared layers: spoil, access, edge, services, water and air, inspection */
+function shared(id,P,opt){
+  const E=P[0][0],b=P[P.length-1][0];
+  {const g=G(id,[0,1.3,-.6]);const z0=-(E+.75),z1=-(E+2.15),zm=-(E+1.45),h=.9;
+    g.prims.push({k:"p",pts:[[-2.6,0,z0],[2.6,0,z0],[2.6,h,zm],[-2.6,h,zm]],ref:[0,0,zm],kind:"spoil",e:1});
+    g.prims.push({k:"p",pts:[[-2.6,h,zm],[2.6,h,zm],[2.6,0,z1],[-2.6,0,z1]],ref:[0,0,zm],kind:"spoil",e:1});
+    for(const x of[-2.6,2.6])g.prims.push({k:"p",pts:[[x,0,z0],[x,h,zm],[x,0,z1]],ref:[0,h/2,zm],kind:"spoil",e:1});
+    for(let x=-2.4;x<=2.4;x+=.32)for(const f of[.25,.5,.75]){const z=lerp(z0,zm,f)+(((x*7)%1)-.5)*.08,y=lerp(0,h,f);g.prims.push({k:"s",a:[x,y+.01,z],b:[x+.06,y+.02,z+.02*Math.sign(z0)],st:"ink"})}}
+  {const g=G(id+1,[0,1.6,0]);if(opt.stair)stairOnSlope(g,-2.0,P);
+    else ladder2(g,[opt.lx,-GD,-opt.lb+.62],[opt.lx,.95,-opt.lb-.0]);}
+  {const g=G(id+2,[0,1.1,.6]);const z=E+.7;for(let x=-2.8;x<=2.81;x+=1.4){tube(g,[x,0,z],[x,1.0,z],.03);boxP(g,[x,.02,z],[.3,.04,.3],"dark")}
+    for(const y of[.5,1.0])tube(g,[-2.8,y,z],[2.8,y,z],.025);boxP(g,[0,.08,E+1.7],[5.6,.16,.18],"board")}
+  {const g=G(id+3,[0,2.1,0]);const x=opt.ux,y=-1.0,hw=halfAt(P,y);tube(g,[x,y,-hw-.02],[x,y,hw+.02],.075,"pipe");
+    boxP(g,[x,.09,0],[.16,.14,2*E+.9],"board");for(const z of[-hw*.45,hw*.45])tube(g,[x,.02,z],[x,y+.06,z],.006,"wire");
+    for(const s of[-1,1]){const z=s*(E+.35);tube(g,[x-.4,0,z],[x-.4,.45,z],.01);g.prims.push({k:"p",pts:[[x-.4,.45,z],[x-.4,.33,z],[x-.2,.39,z]],ref:[x-.4,.39,z-.1],kind:"dark",two:1})}}
+  {const g=G(id+4,[0,1.7,.2]);const px=1.2;boxP(g,[px,-GD+.22,0],[.5,.44,.36],"dark");boxP(g,[px,-GD+.48,0],[.3,.08,.2],"steel");
+    tube(g,[px,-GD+.44,.1],[px,-GD+.44,b-.08],.03,"rope");tube(g,[px,-GD+.44,b-.08],[px,-.02,halfAt(P,-.02)-.06],.03,"rope");tube(g,[px,0,halfAt(P,0)+.05],[px+1.4,0,E+.4],.03,"rope");
+    boxP(g,[-.3,-GD+.09,-b+.25],[.12,.18,.06],"dark");boxP(g,[-.3,-GD+.13,-b+.215],[.08,.06,.006],"steel")}
+  {const g=G(id+5,[0,1.2,.3]);const z=E+1.25,x=2.4;tube(g,[x,0,z],[x,1.5,z],.035);
+    g.prims.push({k:"p",pts:[[x-.35,1.5,z+.02],[x+.35,1.5,z+.02],[x+.35,1.0,z+.02],[x-.35,1.0,z+.02]],ref:[x,1.25,z-.5],kind:"tag",e:1,two:1});/*front*/
+    g.prims.push({k:"p",pts:[[x-.35,1.5,z+.03],[x+.35,1.5,z+.03],[x+.35,1.4,z+.03],[x-.35,1.4,z+.03]],ref:[x,1.45,z-.5],kind:"tagband",two:1});
+    for(let i=0;i<4;i++){const y=1.32-i*.08;g.prims.push({k:"s",a:[x-.27,y,z+.03],b:[x+(i===3?.0:.27),y,z+.03],st:"ink"})}}
+}
+const SH={
+  spoil:{en:["Spoil pile","Dug-out soil kept back so it can’t slide or roll in, or overload the edge.","At least 2 ft (0.61 m) from the edge, or held back by retaining devices (OSHA 1926.651(j)(2)). Equipment and materials kept back too."],
+         ar:["كومة الحفر","التراب المحفور يكون بعيد عشان ما ينزلق ولا يتدحرج للحفرة ولا يثقّل على الحافة.","على الأقل 2 قدم (0.61 م) من الحافة، أو محجوز بحواجز (OSHA 1926.651(j)(2)). والمعدات والمواد بعيدة بعد."]},
+  access:{en:["Access and egress","The way in and out, in case you need to get out fast.","In trenches 4 ft (1.22 m) or deeper: a ladder, stair or ramp within 25 ft (7.6 m) of lateral travel (OSHA 1926.651(c)(2)). Ladder rails at least 3 ft (0.9 m) above the top, secured."],
+          ar:["المخرج (سلّم أو درج)","طريقة الدخول والطلوع، عشان لو احتجت تطلع بسرعة.","في الخنادق اللي عمقها 4 قدم (1.22 م) أو أكثر: سلّم أو درج أو منحدر ما يبعد أكثر من 25 قدم (7.6 م) مشي جانبي (OSHA 1926.651(c)(2)). وجوانب السلّم طالعة 3 قدم (0.9 م) على الأقل فوق الحافة، ومربوط."]},
+  edge:{en:["Edge protection and barriers","Keep people, vehicles and plant away from the edge.","Suitable edge protection and barriers based on the hazards and site requirements. Where mobile equipment approaches the edge without a clear view, a warning system such as barricades, hand or mechanical signals, or stop logs (OSHA 1926.651(f)). Walkways where people must cross, with guardrails where required (OSHA 1926.651(l))."],
+        ar:["حماية الحافة والحواجز","تبعّد الناس والسيارات والمعدات عن الحافة.","حماية حافة وحواجز مناسبة حسب المخاطر ومتطلبات الموقع. وإذا المعدات تقرّب من الحافة والسائق ما يشوفها زين: نظام تحذير مثل حواجز أو إشارات يدوية أو ميكانيكية أو مصدّات (OSHA 1926.651(f)). وممرات حيث لازم الناس يعبرون، بدرابزين حيث مطلوب (OSHA 1926.651(l))."]},
+  services:{en:["Underground services","Pipes and cables already in the ground.","Located and marked before digging; once exposed, supported or protected (OSHA 1926.651(b)).","Never dig blind near marked services."],
+            ar:["الخدمات تحت الأرض","المواسير والكيابل اللي موجودة في الأرض.","محدّدة ومعلّمة قبل الحفر، ولما تنكشف تكون مسنودة أو محمية (OSHA 1926.651(b)).","لا تحفر بدون ما تعرف وين الخدمات المعلّمة."]},
+  water:{you:{en:"If you smell anything, feel unwell or see water rising, get out and report.",ar:"إذا شمّيت شي أو حسّيت بتعب أو شفت الماء يزيد، اطلع وبلّغ."},
+         en:["Water and air","Water weakens the walls; low oxygen or gases can build up in deep trenches.","No work in standing water without precautions such as pumping and checks. Air tested before entry in trenches over 4 ft (1.22 m) where a hazardous atmosphere could exist (OSHA 1926.651(g), (h))."],
+         ar:["الماء والهواء","الماء يضعّف الجدران، والأكسجين ممكن ينقص أو تتجمّع غازات في الخنادق العميقة.","ما فيه شغل في ماء متجمّع بدون احتياطات مثل الشفط والفحص. والهواء يتفحّص قبل الدخول في الخنادق اللي عمقها أكثر من 4 قدم (1.22 م) إذا ممكن يكون فيها جو خطر (OSHA 1926.651(g)، (h))."]},
+  insp:{en:["Daily inspection","The competent person’s record that the trench was checked today.","Inspected before each shift, as needed during it, and after every rainstorm or other hazard-increasing event (OSHA 1926.651(k)).","If there are signs of a cave-in, everyone gets out until it is made safe."],
+        ar:["الفحص اليومي","سجل الشخص المختص إن الخندق انفحص اليوم.","ينفحص قبل كل وردية، وحسب الحاجة خلالها، وبعد كل مطر أو أي شي يزيد الخطر (OSHA 1926.651(k)).","إذا فيه علامات انهيار، الكل يطلع لين يصير آمن."]}
+};
+const SHL=[SH.spoil,SH.access,SH.edge,SH.services,SH.water,SH.insp];
+const SOILV={en:["Soil and trench walls","The ground itself. Soil type decides how a trench must be protected.","Soil classified by a competent person (Appendix A). Walls checked for cracks, bulging, falling soil, water and vibration."],
+             ar:["التربة وجدران الخندق","الأرض نفسها، ونوع التربة يحدد كيف لازم ينحمى الخندق.","التربة مصنّفة من شخص مختص (الملحق A)، والجدران مفحوصة من الشروخ والانتفاخ وتساقط التراب والماء والاهتزاز."]};
+const PV=[[.5,0],[.5,-GD]];
+const TYPES=[
+{key:"sloping",name:{en:"Sloping",ar:"حفر بميول"},
+ desc:{en:"The walls are cut back to an angle the soil can hold. Needs space, but nothing to install in the trench.",ar:"الجدران تنقص لزاوية تقدر التربة تتحمّلها. يحتاج مساحة، بس ما فيه شي ينركّب داخل الخندق."},
+ dim:"2.4 m",pitch:.42,fit:.92,yaw0:1.15,
+ text:[{en:["Sloped walls","Walls cut back to a safe angle for the soil type (Type B shown).","No steeper than OSHA Appendix B allows: Type A 3/4:1 (53°), Type B 1:1 (45°), Type C 1½:1 (34°). Deeper than 20 ft (6.1 m): designed by a registered professional engineer."],
+        ar:["الجدران المائلة","الجدران منقوصة لزاوية آمنة حسب نوع التربة (النوع B في الرسمة).","ما تكون أشد ميل من المسموح في الملحق B من OSHA: النوع A ‏3/4:1 (53°)، النوع B ‏1:1 (45°)، النوع C ‏1½:1 (34°). وإذا العمق أكثر من 20 قدم (6.1 م): يصمّمه مهندس مسجّل."]},...SHL],
+ views:{1:{yaw:.5,pitch:.5},2:{pitch:.5},3:{yaw:-.4,pitch:.35},4:{yaw:-.5,pitch:.3},5:{pitch:.55},6:{pitch:.5},7:{yaw:-.6,pitch:.2,d:3}},
+ build(){const P=[[2.9,0],[.5,-GD]];earth(G(1,[0,0,0]),P,5.4,-2.9);shared(2,P,{stair:1,ux:.3})}},
+{key:"benching",name:{en:"Benching",ar:"حفر بمدرّجات"},
+ desc:{en:"The walls are cut into steps. Allowed in Type A and cohesive Type B soil, never in Type C.",ar:"الجدران تنحفر على شكل درجات. مسموح في التربة A والتربة B المتماسكة، وممنوع في التربة C."},
+ dim:"2.4 m",pitch:.42,fit:.92,yaw0:1.15,
+ text:[{en:["Benched walls","Steps cut into the walls so the soil is held back in stages (Type A shown).","Only in Type A or cohesive Type B soil, never Type C. Overall slope and step sizes within OSHA Appendix B limits (steps generally no more than 4 ft / 1.2 m high). Deeper than 20 ft (6.1 m): designed by a registered professional engineer."],
+        ar:["الجدران المدرّجة","درجات منحوتة في الجدران عشان التربة تنمسك على مراحل (النوع A في الرسمة).","بس في التربة A أو التربة B المتماسكة، وأبدًا في التربة C. الميل العام ومقاسات الدرجات ضمن حدود الملحق B من OSHA (الدرجة عادةً ما تزيد عن 4 قدم / 1.2 م ارتفاع). وإذا العمق أكثر من 20 قدم (6.1 م): يصمّمه مهندس مسجّل."]},...SHL],
+ views:{1:{yaw:.5,pitch:.5},2:{pitch:.5},3:{yaw:-.4,pitch:.35},4:{yaw:-.5,pitch:.3},5:{pitch:.55},6:{pitch:.5},7:{yaw:-.6,pitch:.2,d:3}},
+ build(){const P=[[2.3,0],[2.3,-.8],[1.4,-.8],[1.4,-1.6],[.5,-1.6],[.5,-GD]];earth(G(1,[0,0,0]),P,4.8,-2.9);shared(2,P,{stair:1,ux:.3})}},
+{key:"timber",name:{en:"Timber shoring",ar:"تدعيم خشبي"},
+ desc:{en:"Timber uprights, wales and cross braces hold the walls. Sizes and spacing come from OSHA Appendix C or an engineer’s design.",ar:"ألواح خشب عمودية وعوارض ودعامات عرضية تمسك الجدران. المقاسات والمسافات من الملحق C في OSHA أو من تصميم مهندس."},
+ dim:"2.4 m",pitch:.42,fit:.92,yaw0:1.15,
+ text:[SOILV,
+  {en:["Uprights","Vertical timbers against the walls that take the soil pressure.","Size and spacing from OSHA Appendix C tables or the engineer’s design for the soil type and depth. No splits or rot."],
+   ar:["الألواح العمودية","أخشاب واقفة على الجدران تشيل ضغط التربة.","المقاس والمسافات من جداول الملحق C في OSHA أو تصميم المهندس حسب نوع التربة والعمق، وبدون شقوق أو تسوّس."]},
+  {en:["Wales","Horizontal timbers that spread the load from the uprights to the braces.","Tight against the uprights, at the spacing in the tables or design."],
+   ar:["العوارض الطولية","أخشاب أفقية توزّع الحمل من الألواح العمودية للدعامات.","ملاصقة للألواح العمودية، وبالمسافات اللي في الجداول أو التصميم."]},
+  {en:["Cross braces","Struts across the trench that push both walls apart.","Tight, level and undamaged. Removed in a controlled sequence under competent supervision, starting at the bottom and moving up, with precautions against collapse and backfilling as the supports come out (OSHA 1926.652(e)).","Never climb on the braces. Use the ladder."],
+   ar:["الدعامات العرضية","دعامات بعرض الخندق تدفع الجدارين لبرّا.","مشدودة ومستوية وسليمة. وتنفك بتسلسل مضبوط تحت إشراف شخص مختص، من تحت لفوق، مع احتياطات ضد الانهيار وردم أول بأول مع الفك (OSHA 1926.652(e)).","لا تتسلّق على الدعامات أبدًا، استخدم السلّم."]},
+  ...SHL],
+ views:{1:{yaw:.5,pitch:.45},2:{pitch:.35},3:{pitch:.35},4:{yaw:.4,pitch:.5},5:{pitch:.5},6:{yaw:.3,pitch:.4},7:{yaw:-.4,pitch:.35},8:{yaw:-.5,pitch:.3},9:{pitch:.55},10:{yaw:-.6,pitch:.2,d:3}},
+ build(){earth(G(1,[0,0,0]),PV,3.0,-2.9);
+  {const g=G(2,[0,2.6,0]);for(const x of[-2.4,-1.2,0,1.2,2.4])for(const s of[-1,1])boxP(g,[x,-GD/2,s*.46],[.2,GD,.07],"board",2,1)}
+  {const g=G(3,[0,3.4,0]);for(const y of[-.6,-1.8])for(const s of[-1,1])boxP(g,[0,y,s*.355],[5.6,.2,.15],"board",1,0)}
+  {const g=G(4,[0,4.2,0]);for(const x of[-1.8,-.6,.6,1.8])for(const y of[-.6,-1.8])boxP(g,[x,y,0],[.15,.15,.56],"board",0)}
+  shared(5,PV,{lx:-1.2,lb:.39,ux:.3})}},
+{key:"hydraulic",name:{en:"Hydraulic shoring",ar:"تدعيم هيدروليكي"},
+ desc:{en:"Aluminium hydraulic shores pressed against the walls, usually installed and removed from outside the trench.",ar:"دعامات ألمنيوم هيدروليكية تنضغط على الجدران، وعادةً تنركّب وتنفك من برّا الخندق."},
+ dim:"2.4 m",pitch:.42,fit:.92,yaw0:1.15,
+ text:[SOILV,
+  {en:["Hydraulic shores","Aluminium rails with hydraulic cylinders that push against both walls.","Spacing and positions from OSHA Appendix D or the maker’s tabulated data. Installed and removed from outside the trench where the system allows. Cylinders pressurised, no leaks, rails not bent."],
+   ar:["الدعامات الهيدروليكية","قضبان ألمنيوم فيها سلندرات هيدروليك تضغط على الجدارين.","المسافات والمواقع من الملحق D في OSHA أو جداول الشركة المصنّعة. تنركّب وتنفك من برّا الخندق إذا النظام يسمح. السلندرات مضغوطة، وبدون تسريب، والقضبان مو معوجة."]},
+  {en:["Sheeting","Plywood or panels behind the shores where the soil needs more support.","Fitted where the tables or the maker require it for the soil type."],
+   ar:["ألواح التغطية","ألواح خشب أو بانلات خلف الدعامات حيث التربة تحتاج إسناد أكثر.","مركّبة حيث الجداول أو الشركة المصنّعة تطلبها حسب نوع التربة."]},
+  ...SHL],
+ views:{1:{yaw:.5,pitch:.45},2:{yaw:.4,pitch:.5},3:{pitch:.35},4:{pitch:.5},5:{yaw:.3,pitch:.4},6:{yaw:-.4,pitch:.35},7:{yaw:-.5,pitch:.3},8:{pitch:.55},9:{yaw:-.6,pitch:.2,d:3}},
+ build(){earth(G(1,[0,0,0]),PV,3.0,-2.9);
+  {const g=G(2,[0,2.8,0]);for(const x of[-2,0,2]){for(const s of[-1,1])boxP(g,[x,-GD/2+.05,s*.44],[.1,GD-.2,.05],"steel");
+     for(const y of[-.35,-1.65]){tube(g,[x,y,-.41],[x,y,-.05],.045,"");tube(g,[x,y,-.05],[x,y,.41],.03)}}}
+  {const g=G(3,[0,2.0,0]);for(const x of[-2,0,2])for(const s of[-1,1])boxP(g,[x,-GD/2+.05,s*.475],[1.2,GD-.2,.02],"board",3,1)}
+  shared(4,PV,{lx:-1.0,lb:.39,ux:.3})}},
+{key:"box",name:{en:"Trench box",ar:"صندوق الخندق"},
+ desc:{en:"A steel or aluminium shield that protects the crew if the walls collapse. It shields workers; it does not hold the walls up.",ar:"صندوق حديد أو ألمنيوم يحمي العمّال إذا الجدران انهارت. يحمي اللي داخله، بس ما يمسك الجدران."},
+ dim:"2.4 m",pitch:.42,fit:.92,yaw0:1.15,
+ text:[SOILV,
+  {you:{en:"Stay inside the box. Get out before it is lifted, moved or removed.",ar:"خلّك داخل الصندوق، واطلع قبل ما يرفعونه أو يحرّكونه أو يشيلونه."},
+   en:["Box walls","The steel or aluminium walls that take the load if the trench caves in.","Rated for the depth and soil (maker’s tabulated data). Installed and secured to prevent hazardous lateral or other movement, following the maker’s instructions (OSHA 1926.652(g)(1)). Up to 2 ft (0.61 m) of trench below the box only when it is designed for the full depth and there is no sign of soil loss from behind or below it (OSHA 1926.652(g)(2)). Where the trench is sloped or benched above the box, the box extends at least 18 in (0.46 m) above the top of the vertical side (Appendix B).","Nobody inside while the box is installed, removed or moved vertically."],
+   ar:["جدران الصندوق","الجدران الحديد أو الألمنيوم اللي تشيل الحمل لو الخندق انهار.","مقنّن للعمق ونوع التربة (جداول الشركة المصنّعة). مركّب ومثبّت عشان ما يتحرّك حركة خطرة للجنب أو غيره، حسب تعليمات الشركة المصنّعة (OSHA 1926.652(g)(1)). الحفر تحت الصندوق لين 2 قدم (0.61 م) بس إذا مصمّم للعمق كامل وما فيه أي علامة تسرّب تربة من خلفه أو تحته (OSHA 1926.652(g)(2)). وإذا الخندق منقوص بميول أو مدرّجات فوق الصندوق، الصندوق يطلع 18 إنش (0.46 م) على الأقل فوق أعلى الجدار العمودي (الملحق B).","ما أحد يكون داخل الصندوق وقت تركيبه أو فكه أو تحريكه لفوق وتحت."]},
+  {en:["Spreaders","Struts that hold the box walls apart.","All spreaders and pins in place, not bent or damaged, the size the maker specifies."],
+   ar:["دعامات الصندوق","دعامات تمسك جدران الصندوق بعيد عن بعض.","كل الدعامات والمسامير في مكانها، مو معوجة ولا متضرّرة، وبالمقاس اللي تحدده الشركة."]},
+  ...SHL],
+ views:{1:{yaw:.5,pitch:.45},2:{yaw:.5,pitch:.45},3:{pitch:.5},4:{pitch:.5},5:{yaw:.3,pitch:.4},6:{yaw:-.4,pitch:.35},7:{yaw:-.5,pitch:.3},8:{pitch:.55},9:{yaw:-.6,pitch:.2,d:3}},
+ build(){earth(G(1,[0,0,0]),PV,3.0,-2.9);
+  {const g=G(2,[0,2.9,0]);for(const s of[-1,1]){boxP(g,[0,-GD/2+.15,s*.42],[4.0,GD+.3,.1],"steel",0);
+     for(const x of[-1.5,-.5,.5,1.5])g.prims.push({k:"s",a:[x,-GD+.05,s*.475],b:[x,.25,s*.475],st:"grain"})}}
+  {const g=G(3,[0,3.8,0]);for(const x of[-1.6,1.6])for(const y of[-.5,-1.7]){tube(g,[x,y,-.37],[x,y,.37],.06);for(const s of[-1,1])boxP(g,[x,y,s*.33],[.16,.16,.06],"dark")}}
+  shared(4,PV,{lx:-1.0,lb:.31,ux:2.75})}},
+{key:"slide",name:{en:"Slide rail",ar:"نظام القضبان المنزلقة"},
+ desc:{en:"Steel posts and panels pushed down in step with the dig. Used for deep or long trenches and tight sites.",ar:"أعمدة حديد وألواح تنزل مع الحفر خطوة بخطوة. تُستخدم للخنادق العميقة أو الطويلة والمواقع الضيقة."},
+ dim:"2.4 m",pitch:.42,fit:.92,yaw0:1.15,
+ text:[SOILV,
+  {en:["Rail posts","Steel posts with tracks that guide the panels.","Installed to the maker’s instructions and tabulated data for the depth and soil. Plumb, tracks clean and undamaged."],
+   ar:["الأعمدة والقضبان","أعمدة حديد فيها مسارات توجّه الألواح.","مركّبة حسب تعليمات الشركة المصنّعة وجداولها للعمق ونوع التربة، وواقفة عدل، والمسارات نظيفة وسليمة."]},
+  {en:["Panels","Steel panels that slide down the rails to hold the walls.","Fully seated in the tracks, pushed down with the dig, no gaps where soil can run in."],
+   ar:["الألواح","ألواح حديد تنزلق في القضبان وتمسك الجدران.","راكبة كامل في المسارات، وتنزل مع الحفر، وما فيه فراغات يدخل منها التراب."]},
+  ...SHL],
+ views:{1:{yaw:.5,pitch:.45},2:{pitch:.4},3:{yaw:.4,pitch:.4},4:{pitch:.5},5:{yaw:.3,pitch:.4},6:{yaw:-.4,pitch:.35},7:{yaw:-.5,pitch:.3},8:{pitch:.55},9:{yaw:-.6,pitch:.2,d:3}},
+ build(){earth(G(1,[0,0,0]),PV,3.0,-2.9);
+  {const g=G(2,[0,3.4,0]);for(const x of[-2.4,0,2.4])for(const s of[-1,1])boxP(g,[x,-GD/2+.3,s*.44],[.22,GD+.6,.14],"steel",0)}
+  {const g=G(3,[0,2.4,0]);for(const [a,c] of[[-2.29,-.11],[.11,2.29]])for(const s of[-1,1])for(const y of[-.6,-1.8])boxP(g,[(a+c)/2,y,s*.45],[c-a,1.18,.1],"steel",2,0)}
+  shared(4,PV,{lx:-1.2,lb:.39,ux:2.75})}}
+];
+
+const ROLE={sloping:"Cuuuccc",benching:"Cuuuccc",timber:"CccCuuuccc",hydraulic:"CCcuuuccc",box:"CCcuuuccc",slide:"CCcuuuccc"};
+/* build every type once */
+for(const t of TYPES){t.role=ROLE[t.key]||"";LAY=t.text.map((_,i)=>({id:i+1,groups:[]}));CTX=[];t.build();t.layers=LAY;t.ctx=CTX;
+  for(const L of t.layers){for(const g of L.groups){const mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];const eat=p=>{for(let a=0;a<3;a++){mn[a]=Math.min(mn[a],p[a]);mx[a]=Math.max(mx[a],p[a])}};
+      for(const q of g.prims){if(q.a){eat(q.a);eat(q.b)}else q.pts.forEach(eat)}g.mn=mn;g.mx=mx}
+    // label anchor: the primitive midpoint closest to the layer's centre
+    const g0=L.groups[0];const c=mul(add(g0.mn,g0.mx),.5);let best=null,bd=1e9;
+    for(const q of g0.prims){const m=q.a?mul(add(q.a,q.b),.5):mul(q.pts.reduce((s,p)=>add(s,p),[0,0,0]),1/q.pts.length);const d=len(sub(m,c));if(d<bd){bd=d;best=m}}
+    L.anchor=best}
+  // front elevation segments
+  const seg=[];for(const L of t.layers)for(const g of L.groups)for(const q of g.prims){if(q.k==="t")seg.push([q.a,q.b]);else if(q.k==="p"&&q.kind!=="tagband"){const xs=q.pts.map(p=>p[0]),ys=q.pts.map(p=>p[1]);
+      if(Math.max(...ys)-Math.min(...ys)>.02||Math.max(...xs)-Math.min(...xs)>.3)seg.push([[Math.min(...xs),Math.min(...ys)],[Math.max(...xs),Math.min(...ys)]])}}
+  t.elev=seg;
+}
+
+/* ---------- state ---------- */
+const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const st={use:false,hist:false,info:false,calc:false,duty:1,lang:"en",ti:0,ex:0,exT:0,turn:!RM,focus:0,drag:false,zoom:1,cam:{t:[0,0,0],d:12,yaw:1.15,pitch:.42},tw:null,markT:0,cy:0,done:false};
+try{const l=localStorage.getItem("ba-excavation-lang");if(l==="ar"||l==="en")st.lang=l}catch(e){}
+const H0=(location.hash||"").slice(1);const hi=TYPES.findIndex(t=>t.key===H0);if(hi>=0)st.ti=hi;
+const HIST=[];
+const HSRC="";
+const TY=()=>TYPES[st.ti],NP=()=>TY().layers.length;
+const $=id=>document.getElementById(id);
+const cv=$("cv"),ctx=cv.getContext("2d"),sheet=$("sheet");let W=0,H=0,DPR=1;
+function resize(){const r=sheet.getBoundingClientRect();DPR=Math.min(2,devicePixelRatio||1);W=r.width;H=r.height;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR)}
+new ResizeObserver(resize).observe(sheet);resize();
+
+const FOV=28*Math.PI/180,TH=Math.tan(FOV/2);
+const layerE=id=>ease(clamp(st.exT*1.4-(id-1)/Math.max(1,NP()-1)*.4,0,1));
+const gOff=(id,g)=>mul(g.off,layerE(id));
+function bounds(only){const mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];
+  for(const L of TY().layers){if(only&&L.id!==only)continue;for(const g of L.groups){const o=gOff(L.id,g);
+    for(let a=0;a<3;a++){mn[a]=Math.min(mn[a],g.mn[a]+o[a]);mx[a]=Math.max(mx[a],g.mx[a]+o[a])}}}return {mn,mx}}
+const anchorW=id=>{const L=TY().layers[id-1];return add(L.anchor,gOff(id,L.groups[0]))};
+function overview(yaw){return ()=>{const {mn,mx}=bounds();const asp=W/Math.max(1,H);
+  const top=58,bot=56,uh=Math.max(.3,(H-top-bot)/Math.max(1,H));
+  const h=(mx[1]-mn[1])+.3,w=Math.hypot(mx[0]-mn[0],mx[2]-mn[2])*.92;
+  const d=Math.max(h/uh/2/TH,w*(W<560?1.3:1.2)/2/(TH*asp))*st.zoom;const sh=((top-bot)/2)/H*2*d*TH;
+  return {t:[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2+sh,(mn[2]+mx[2])/2],d:d*(TY().fit||1),yaw:yaw??st.cam.yaw,pitch:TY().pitch||.2}}}
+function focusG(id){return ()=>{const {mn,mx}=bounds(id);const c=mul(add(mn,mx),.5);const r=len(sub(mx,mn))/2;
+  const asp=W/Math.max(1,H);const v=Object.assign({yaw:.55,pitch:.25},TY().views[id]||{});
+  const d=v.d??Math.max(1.4,r*1.05/TH,r/(TH*asp));return {t:c,d,yaw:v.yaw,pitch:v.pitch}}}
+function goTo(fn,dur=1100){const c=st.cam;st.tw={s:{t:[...c.t],d:c.d,yaw:c.yaw,pitch:c.pitch},fn,t0:performance.now(),dur:RM?1:dur}}
+const shortA=(a,b)=>{let d=(b-a)%TAU;if(d>Math.PI)d-=TAU;if(d<-Math.PI)d+=TAU;return a+d};
+
+/* ---------- render ---------- */
+const LIGHT=nrm([.4,.85,.5]);
+const PAL={soil:[[170,160,140],[228,220,202]],floor:[[150,142,124],[204,196,178]],spoil:[[86,80,70],[138,128,112]],board:[[205,198,184],[248,244,234]],steel:[[150,150,148],[232,232,230]],dark:[[40,40,40],[96,96,94]],tag:[[236,232,222],[252,250,244]],tagband:[[22,22,22],[22,22,22]],hi:[[200,145,0],[255,212,48]],hiDark:[[120,84,0],[170,122,8]],red:[[150,24,18],[214,48,38]]};
+function basis(){const c=st.cam,cp=Math.cos(c.pitch);const pos=add(c.t,mul([Math.sin(c.yaw)*cp,Math.sin(c.pitch),Math.cos(c.yaw)*cp],c.d));
+  const f=nrm(sub(c.t,pos)),r=nrm(cross(f,[0,1,0])),u=cross(r,f);return {pos,f,r,u,fo:(H/2)/TH}}
+function P(B,p){const d=sub(p,B.pos),z=dot(d,B.f);return {x:W/2+dot(d,B.r)*B.fo/z,y:H/2-st.cy-dot(d,B.u)*B.fo/z,z}}
+let hits=[];
+function render(now){
+  const B=basis(),ty=TY();ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,W,H);
+  const {mn,mx}=bounds();
+  // context (building, ceiling): faint
+  ctx.save();ctx.strokeStyle="rgba(22,22,22,.2)";ctx.lineWidth=1;ctx.beginPath();
+  for(const [a,b] of ty.ctx){const A=P(B,a),C=P(B,b);if(A.z<.1||C.z<.1)continue;ctx.moveTo(A.x,A.y);ctx.lineTo(C.x,C.y)}ctx.stroke();
+  // ground footprint
+  const gx0=Math.min(mn[0],-1)-.6,gx1=Math.max(mx[0],1)+.6,gz0=Math.min(mn[2],-1)-.6,gz1=Math.max(mx[2],1)+.6;
+  ctx.strokeStyle="rgba(22,22,22,.4)";ctx.setLineDash([6,5]);ctx.beginPath();
+  [[gx0,gz0],[gx1,gz0],[gx1,gz1],[gx0,gz1],[gx0,gz0]].forEach(([x,z],i)=>{const p=P(B,[x,0,z]);i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)});ctx.stroke();ctx.restore();
+
+  const items=[];
+  for(const Ly of ty.layers){const foc=st.focus===Ly.id||(!st.focus&&(window.__hl||[]).includes(Ly.id)),dim=st.focus&&st.focus!==Ly.id,alpha=dim?.2:1;
+    for(const g of Ly.groups){const o=gOff(Ly.id,g);
+      for(const q of g.prims){
+        if(q.k==="t"){const a=P(B,add(q.a,o)),b=P(B,add(q.b,o));if(a.z<.1||b.z<.1)continue;
+          items.push({k:"t",a,b,z:(a.z+b.z)/2,w:Math.max(q.kind?1.2:1.4,2*q.r*B.fo/((a.z+b.z)/2)),kind:q.kind,foc,alpha,id:Ly.id})}
+        else if(q.k==="p"){const pts=q.pts.map(p=>P(B,add(p,o)));if(pts.some(p=>p.z<.1))continue;
+          const w=q.pts.map(p=>add(p,o));let n=nrm(cross(sub(w[1],w[0]),sub(w[2],w[0])));const c=mul(w.reduce((s,p)=>add(s,p),[0,0,0]),1/w.length);
+          if(dot(n,sub(c,add(q.ref,o)))<0)n=mul(n,-1);const vd=nrm(sub(B.pos,c));let fac=dot(n,vd);
+          if(q.two)fac=Math.abs(fac);else if(fac<=0)continue;
+          const k=clamp(.25+.5*Math.abs(dot(n,LIGHT))+.3*fac,0,1);
+          const pal=foc&&q.kind!=="red"?(q.kind==="dark"||q.kind==="tagband"?PAL.hiDark:PAL.hi):(PAL[q.kind]||PAL.soil);
+          const col=`rgb(${[0,1,2].map(i=>Math.round(lerp(pal[0][i],pal[1][i],k))).join(",")})`;
+          items.push({k:"p",pts,z:pts.reduce((s,p)=>s+p.z,0)/pts.length,col:(q.kind==="section"&&!foc)?SECPAT():col,e:q.e!==undefined?!!q.e:q.kind!=="tagband",alpha,id:Ly.id})}
+        else if(q.k==="l"){const pts=q.pts.map(p=>P(B,add(p,o)));if(pts.some(p=>p.z<.1))continue;
+          items.push({k:"l",pts,z:pts.reduce((s,p)=>s+p.z,0)/pts.length-.01,alpha,foc,id:Ly.id})}
+        else{const a=P(B,add(q.a,o)),b=P(B,add(q.b,o));if(a.z<.1||b.z<.1)continue;
+          items.push({k:"s",a,b,z:(a.z+b.z)/2-.004,st:q.st,alpha,id:Ly.id})}
+      }}}
+  items.sort((a,b)=>b.z-a.z);hits=[];ctx.lineJoin="round";
+  for(const it of items){ctx.globalAlpha=it.alpha;
+    if(it.k==="t"){ctx.lineCap="round";ctx.beginPath();ctx.moveTo(it.a.x,it.a.y);ctx.lineTo(it.b.x,it.b.y);
+      if(it.kind){ctx.strokeStyle=it.foc?"#d49a00":(it.kind==="rope"?"#3b3b3b":"#161616");ctx.lineWidth=it.w+(it.foc?1.6:0);if(it.kind==="rope"&&!it.foc)ctx.setLineDash([5,3]);ctx.stroke();ctx.setLineDash([])}
+      else{ctx.strokeStyle="#161616";ctx.lineWidth=it.w+2.2;ctx.stroke();ctx.strokeStyle=it.foc?"#f5c518":"#e3e2df";ctx.lineWidth=it.w;ctx.stroke();
+        if(it.w>5){ctx.strokeStyle="rgba(255,255,255,.75)";ctx.lineWidth=Math.max(1,it.w*.18);ctx.beginPath();
+          const nx=-(it.b.y-it.a.y),ny=it.b.x-it.a.x,l=Math.hypot(nx,ny)||1,s=it.w*.22;ctx.moveTo(it.a.x+nx/l*s,it.a.y+ny/l*s);ctx.lineTo(it.b.x+nx/l*s,it.b.y+ny/l*s);ctx.stroke()}}
+      hits.push(it)}
+    else if(it.k==="p"){ctx.beginPath();it.pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fillStyle=it.col;ctx.fill();
+      if(it.e){ctx.strokeStyle="#161616";ctx.lineWidth=1;ctx.stroke()}hits.push(it)}
+    else if(it.k==="l"){ctx.beginPath();it.pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();
+      ctx.fillStyle=it.foc?"#f5c518":"#d6d5d1";ctx.fill();ctx.strokeStyle="#161616";ctx.lineWidth=.9;ctx.stroke()}
+    else{ctx.strokeStyle=it.st==="grain"?"rgba(22,22,22,.28)":"#161616";ctx.lineWidth=it.st==="grain"?.7:1.1;ctx.lineCap="butt";ctx.beginPath();ctx.moveTo(it.a.x,it.a.y);ctx.lineTo(it.b.x,it.b.y);ctx.stroke()}
+  }
+  ctx.globalAlpha=1;if(!st.focus)elevation();labels(B,now);
+}
+let _SP=null;function SECPAT(){if(_SP)return _SP;const c=document.createElement("canvas");c.width=c.height=12;const x=c.getContext("2d");x.fillStyle="#e6dfcf";x.fillRect(0,0,12,12);x.strokeStyle="#8d8574";x.lineWidth=1;x.beginPath();x.moveTo(-2,14);x.lineTo(14,-2);x.moveTo(-8,8);x.lineTo(8,-8);x.moveTo(4,20);x.lineTo(20,4);x.stroke();_SP=ctx.createPattern(c,"repeat");return _SP}
+function elevation(){return;if(W<330||(W<560&&st.exT>.4))return;const ty=TY();let x0=1e9,x1=-1e9,y1=-1e9;
+  for(const [a,b] of ty.elev){x0=Math.min(x0,a[0],b[0]);x1=Math.max(x1,a[0],b[0]);y1=Math.max(y1,a[1],b[1])}
+  const hpx=Math.min(78,H*.13),s=hpx/y1,wpx=(x1-x0)*s;const s2=wpx>110?110/wpx:1,S=s*s2,ox=14,oy=16+y1*S;
+  ctx.save();ctx.globalAlpha=.9;ctx.strokeStyle="#161616";ctx.lineWidth=.8;ctx.beginPath();
+  for(const [a,b] of ty.elev){ctx.moveTo(ox+(a[0]-x0)*S,oy-a[1]*S);ctx.lineTo(ox+(b[0]-x0)*S,oy-b[1]*S)}ctx.stroke();
+  const dx=ox+(x1-x0)*S+7,top=parseFloat(ty.dim);ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(dx,oy);ctx.lineTo(dx,oy-top*S);ctx.moveTo(dx-3,oy);ctx.lineTo(dx+3,oy);ctx.moveTo(dx-3,oy-top*S);ctx.lineTo(dx+3,oy-top*S);ctx.stroke();
+  ctx.fillStyle="#161616";ctx.font='600 11px "IBM Plex Sans Condensed","IBM Plex Sans",sans-serif';ctx.textBaseline="middle";ctx.textAlign="left";ctx.direction="ltr";ctx.fillText(ty.dim,dx+5,oy-top*S/2);
+  ctx.font=`500 10.5px ${st.lang==="ar"?'"IBM Plex Sans Arabic",':''}"IBM Plex Sans",sans-serif`;ctx.direction=st.lang==="ar"?"rtl":"ltr";ctx.textAlign=st.lang==="ar"?"right":"left";
+  ctx.fillText(T[st.lang].elev,st.lang==="ar"?ox+(x1-x0)*S:ox,oy+11);ctx.restore()}
+
+const SIDE={};
+function labels(B,now){
+  const show=st.focus?1:clamp((ease(st.exT)-.55)/.45,0,1);if(show<=0)return;
+  const ty=TY(),ar=st.lang==="ar",other=ar?"en":"ar";const n=NP();const fs=W<520?(n>9?12.5:13):14.5,fs2=fs-3;
+  const f1=`600 ${fs}px ${ar?'"IBM Plex Sans Arabic",':''}"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif`;
+  const f2=`500 ${fs2}px ${ar?'':'"IBM Plex Sans Arabic",'}"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif`;
+  const fN=`700 ${fs-2}px "IBM Plex Sans Condensed","IBM Plex Sans",sans-serif`;
+  const ids=st.focus?[st.focus]:ty.layers.map(l=>l.id);const cx=st.focus?W/2:P(B,st.cam.t).x;
+  const its=ids.map(id=>{const a=P(B,anchorW(id));return {id,a,y:a.y,side:st.focus?(a.x<cx?1:-1):1,n1:ty.text[id-1][st.lang][0],n2:ty.text[id-1][other][0]}});
+  if(!st.focus)its.slice().sort((a,b)=>a.a.y-b.a.y).forEach((it,k)=>{it.side=k%2?1:-1});
+  let spread=0;for(const i of its)spread=Math.max(spread,Math.abs(i.a.x-cx));const R=spread+26;
+  const top=58,bot=H-48,gap=fs*2.7;
+  for(const s of[-1,1]){const g=its.filter(i=>i.side===s).sort((a,b)=>a.y-b.y);
+    for(let i=0;i<g.length;i++){g[i].y=clamp(g[i].y,top,bot);if(i&&g[i].y-g[i-1].y<gap)g[i].y=g[i-1].y+gap}
+    for(let i=g.length-1;i>=0;i--){if(g[i].y>bot)g[i].y=bot;if(i<g.length-1&&g[i+1].y-g[i].y<gap)g[i].y=g[i+1].y-gap}}
+  ctx.globalAlpha=show;ctx.textBaseline="middle";
+  for(const it of its){
+    ctx.font=fN;const nw=ctx.measureText("00").width+8;ctx.font=f1;ctx.direction=ar?"rtl":"ltr";const t1=ctx.measureText(it.n1).width;
+    ctx.font=f2;ctx.direction=ar?"ltr":"rtl";const t2=ctx.measureText(it.n2).width;const tw=Math.max(t1,t2),total=nw+6+tw,m=10;
+    const x0=st.focus?(it.side<0?m:W-m-total):(it.side<0?clamp(cx-R-total,m,W-m-total):clamp(cx+R,m,W-m-total));
+    const le=it.side<0?x0+total+5:x0-5,el=le+(it.side<0?12:-12);
+    ctx.strokeStyle="#161616";ctx.lineWidth=.9;ctx.beginPath();ctx.moveTo(it.a.x,it.a.y);ctx.lineTo(el,it.y);ctx.lineTo(le,it.y);ctx.stroke();
+    ctx.fillStyle="#161616";ctx.beginPath();ctx.arc(it.a.x,it.a.y,2.6,0,TAU);ctx.fill();
+    ctx.fillStyle="rgba(241,235,221,.93)";ctx.fillRect(x0-3,it.y-fs*.95,total+6,fs*2.05);
+    const nx=x0+nw+6,y1=it.y-fs*.3,y2=it.y+fs*.68;
+    if(st.focus===it.id){const k=ease(clamp((now-st.markT)/420,0,1)),dir=ar?-1:1,hx=ar?nx+tw:nx,wv=t1*k*dir;
+      ctx.fillStyle="rgba(232,180,0,.85)";ctx.beginPath();ctx.moveTo(hx-2*dir,y1-fs*.45);ctx.lineTo(hx+wv+2*dir,y1-fs*.52);ctx.lineTo(hx+wv+3*dir,y1+fs*.45);ctx.lineTo(hx-3*dir,y1+fs*.4);ctx.closePath();ctx.fill()}
+    ctx.fillStyle="#161616";ctx.fillRect(x0,y1-fs*.6,nw,fs*1.2);ctx.fillStyle="#f1ebdd";ctx.font=fN;ctx.direction="ltr";ctx.textAlign="center";ctx.fillText(String(it.id).padStart(2,"0"),x0+nw/2,y1+.5);
+    ctx.fillStyle="#161616";ctx.font=f1;ctx.direction=ar?"rtl":"ltr";ctx.textAlign=ar?"right":"left";ctx.fillText(it.n1,ar?nx+tw:nx,y1+.5);
+    ctx.fillStyle="#5d584f";ctx.font=f2;ctx.direction=ar?"ltr":"rtl";ctx.textAlign=ar?"right":"left";ctx.fillText(it.n2,ar?nx+tw:nx,y2);
+  }
+  ctx.globalAlpha=1;ctx.textAlign="left";ctx.direction="ltr";
+}
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;const sp=RM?100:1/1.5;
+  if(st.exT<st.ex)st.exT=Math.min(st.ex,st.exT+dt*sp);if(st.exT>st.ex)st.exT=Math.max(st.ex,st.exT-dt*sp);
+  const cyGoal=(st.focus||st.calc||st.info||st.use)?Math.min(H*.3,($(st.use?"useC":st.info?"info":st.calc?"calc":"card").offsetHeight+10)/2):0;st.cy=lerp(st.cy,cyGoal,1-Math.exp(-dt*7));
+  const c=st.cam;
+  if(st.tw){const t=st.tw,k=ease(clamp((now-t.t0)/t.dur,0,1)),g=t.fn();c.t=lerp3(t.s.t,g.t,k);c.d=lerp(t.s.d,g.d,k);c.yaw=lerp(t.s.yaw,shortA(t.s.yaw,g.yaw),k);c.pitch=lerp(t.s.pitch,g.pitch,k);if(k>=1)st.tw=null}
+  else if(st.focus){c.t=focusG(st.focus)().t}
+  else{const g=overview()();const k=1-Math.exp(-dt*7);c.t=lerp3(c.t,g.t,k);c.d=lerp(c.d,g.d,k);if(st.turn&&!st.drag)c.yaw+=dt*.18}
+  render(now);requestAnimationFrame(frame)}
+
+/* ---------- input ---------- */
+const ptr=new Map();let down=null,moved=0,pinch=null;
+const zoomBy=f=>{st.tw=null;if(st.focus)st.cam.d=clamp(st.cam.d*f,.4,60);else st.zoom=clamp(st.zoom*f,.3,2.5)};
+cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptr.size===1){down={x:e.clientX,y:e.clientY};moved=0}if(ptr.size===2){const [a,b]=[...ptr.values()];pinch=Math.hypot(a.x-b.x,a.y-b.y)}
+  st.drag=true;cv.classList.add("dragging")});
+cv.addEventListener("pointermove",e=>{if(!ptr.has(e.pointerId))return;const p=ptr.get(e.pointerId),dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;
+  if(ptr.size===1){moved+=Math.abs(dx)+Math.abs(dy);if(moved>6){st.tw=null;st.cam.yaw-=dx*.008;st.cam.pitch=clamp(st.cam.pitch+dy*.005,-.3,1.25)}}
+  else if(ptr.size===2&&pinch){const [a,b]=[...ptr.values()],d=Math.hypot(a.x-b.x,a.y-b.y);zoomBy(pinch/d);pinch=d;moved=99}});
+function up(e){if(!ptr.has(e.pointerId))return;ptr.delete(e.pointerId);if(!ptr.size){st.drag=false;cv.classList.remove("dragging");
+  if(moved<=6&&down){const r=cv.getBoundingClientRect();tap(down.x-r.left,down.y-r.top)}pinch=null}}
+cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
+cv.addEventListener("wheel",e=>{e.preventDefault();zoomBy(Math.exp(e.deltaY*.0012))},{passive:false});
+function segD(x,y,a,b){const vx=b.x-a.x,vy=b.y-a.y,t=clamp(((x-a.x)*vx+(y-a.y)*vy)/(vx*vx+vy*vy||1),0,1);return Math.hypot(x-a.x-vx*t,y-a.y-vy*t)}
+function inPoly(x,y,p){let s=false;for(let i=0,j=p.length-1;i<p.length;j=i++)if(((p[i].y>y)!==(p[j].y>y))&&(x<(p[j].x-p[i].x)*(y-p[i].y)/(p[j].y-p[i].y+1e-9)+p[i].x))s=!s;return s}
+function tap(x,y){for(let i=hits.length-1;i>=0;i--){const h=hits[i];if(h.alpha<.3)continue;
+    if(h.k==="t"?segD(x,y,h.a,h.b)<h.w/2+6:inPoly(x,y,h.pts)){select(h.id);return}}
+  if(st.focus)closeF()}
+
+/* ---------- UI ---------- */
+function select(id){st.calc=false;st.info=false;st.use=false;st.focus=id;st.done=false;st.markT=performance.now()+(RM?0:700);goTo(focusG(id));ui()}
+function closeF(){st.focus=0;goTo(overview(st.cam.yaw));ui()}
+function showHist(){st.hist=true;st.focus=0;st.calc=false;st.info=false;st.use=false;try{history.replaceState(null,"","#history")}catch(e){}ui();$("hist").scrollTop=0}
+function setType(i){if(i===st.ti&&!st.hist)return;const was=st.hist;st.hist=false;if(i===st.ti&&was){try{history.replaceState(null,"","#"+TYPES[i].key)}catch(e){}ui();return}st.ti=i;st.focus=0;st.calc=false;st.info=false;st.use=false;st.done=false;st.zoom=1;st.tw=null;
+  st.exT=0;st.ex=0;const g=overview(TY().yaw0||.6)();st.cam.t=g.t;st.cam.d=g.d;st.cam.yaw=TYPES[i].yaw0||.6;st.cam.pitch=TYPES[i].pitch||.2;
+  try{history.replaceState(null,"","#"+TYPES[i].key)}catch(e){}
+  ui();setTimeout(()=>{if(st.ti===i){st.ex=1;ui()}},RM?0:700)}
+$("next").onclick=()=>{if(!st.focus){st.done=false;select(1);return}if(st.focus<NP())select(st.focus+1);else{st.done=true;closeF()}};
+$("prev").onclick=()=>{if(st.focus>1)select(st.focus-1);else closeF()};
+$("close").onclick=closeF;
+$("explode").onclick=()=>{st.ex=st.ex?0:1;ui()};
+$("turn").onclick=()=>{st.turn=!st.turn;ui()};
+$("who").onclick=()=>{st.info=!st.info;st.calc=false;st.use=false;if(st.info&&st.focus){st.focus=0;goTo(overview(st.cam.yaw))}ui()};
+$("iClose").onclick=()=>{st.info=false;ui()};
+$("load").onclick=()=>{st.info=false;st.use=false;st.calc=!st.calc;if(st.calc&&st.focus){st.focus=0;goTo(overview(st.cam.yaw))}ui()};
+$("kClose").onclick=()=>{st.calc=false;ui()};
+$("kLen").oninput=$("kWid").oninput=()=>calcOut();
+function calcOut(){const k=TK[st.lang],R=[.75,1,1.5][st.duty];
+  const Dm=clamp(parseFloat($("kLen").value)||0,0,30),Bm=clamp(parseFloat($("kWid").value)||0,0,10),h=Dm*R,w=Bm+2*h;
+  $("kOut").innerHTML="";const b=document.createElement("b");b.textContent=k.res(h.toFixed(2),w.toFixed(2));$("kOut").append(b);
+  const add2=t=>{$("kOut").append(document.createElement("br"),t)};if(Dm<1.52)add2(k.shallow);if(Dm>6.1)add2(k.deep);if(st.duty===0&&Dm<=3.66)add2(k.shortA)}
+$("reset").onclick=()=>{st.focus=0;st.zoom=1;goTo(overview(TY().yaw0||.6));ui()};
+$("home").onclick=()=>{try{localStorage.setItem("ba-lang",st.lang)}catch(e){}};
+$("lang").onclick=()=>{st.lang=st.lang==="en"?"ar":"en";try{localStorage.setItem("ba-excavation-lang",st.lang)}catch(e){}ui()};
+addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(h==="history"){showHist();return}const i=TYPES.findIndex(t=>t.key===h);if(i>=0)setType(i)});
+addEventListener("keydown",e=>{if(e.target.tagName==="BUTTON"&&(e.key===" "||e.key==="Enter"))return;
+  if(e.key==="ArrowRight")$(st.lang==="ar"?"prev":"next").click();if(e.key==="ArrowLeft")$(st.lang==="ar"?"next":"prev").click();if(e.key==="Escape"&&st.use){st.use=false;ui()}else if(e.key==="Escape"&&st.focus)closeF()});
+const RT={
+  en:{u:"Your check",c:"Competent person",e:"Engineer verifies",crit:"Critical",btn:"Who checks",t:"Who checks what",ex:"Worker checks are visual safety checks only: they do not replace soil classification, the competent person’s inspection, protective-system verification or engineering approval. Never enter or keep working when conditions are unsafe, even if an inspection was done earlier. The arrangements shown are schematic examples, not designs: sizes and spacing come from the OSHA appendices, the maker’s tabulated data or an engineer’s design.",
+    roles:[["u","Before you go in, every time: inspection done today, protective system in place, ladder or stair within reach, spoil and equipment back from the edge, barriers up, and no cracks, bulging, falling soil or water."],
+           ["c","A competent person classifies the soil, inspects before each shift, as needed during it and after every rainstorm or other hazard-increasing event (OSHA 1926.651(k)), and can remove everyone and stop the work."],
+           ["e","Sloping and benching deeper than 20 ft (6.1 m) require design by a registered professional engineer. Other protective systems follow the applicable OSHA design options, including approved tabulated data, or a registered professional engineer’s design where required (OSHA 1926.652(b), (c))."]],
+    stop:"<b>Get out and report if:</b> there are cracks, bulging walls, falling soil or water seeping in; the protective system is missing, damaged or moved; water is collecting; you smell gas or feel unwell; spoil, materials or machines are at the edge; it has rained since the last inspection; or the trench box is being lifted or moved with anyone inside."},
+  ar:{u:"افحص بنفسك",c:"الشخص المختص",e:"يتحقق منه المهندس",crit:"حرج",btn:"مين يفحص",t:"مين يفحص إيش",ex:"فحص العامل فحص بالنظر بس: ما يغني عن تصنيف التربة ولا فحص الشخص المختص ولا التحقق من نظام الحماية ولا الموافقة الهندسية. لا تنزل ولا تكمّل شغل إذا الوضع مو آمن، حتى لو فيه فحص قبل. الترتيبات اللي في الرسمات أمثلة توضيحية، مو تصاميم: المقاسات والمسافات من ملاحق OSHA أو جداول الشركة المصنّعة أو تصميم مهندس.",
+    roles:[["u","قبل ما تنزل، كل مرة: الفحص اليومي مسوّى، ونظام الحماية في مكانه، والسلّم أو الدرج قريب، والتراب والمعدات بعيدة عن الحافة، والحواجز موجودة، وما فيه شروخ أو انتفاخ أو تساقط تراب أو ماء."],
+           ["c","شخص مختص يصنّف التربة، ويفحص قبل كل وردية، وحسب الحاجة خلالها، وبعد كل مطر أو أي شي يزيد الخطر (OSHA 1926.651(k))، وله صلاحية يطلّع الكل ويوقف الشغل."],
+           ["e","الميول والمدرّجات اللي عمقها أكثر من 20 قدم (6.1 م) لازم يصمّمها مهندس مسجّل. وباقي أنظمة الحماية تمشي على خيارات التصميم في OSHA، ومنها الجداول المعتمدة، أو تصميم مهندس مسجّل حيث مطلوب (OSHA 1926.652(b)، (c))."]],
+    stop:"<b>اطلع وبلّغ إذا:</b> فيه شروخ أو انتفاخ في الجدران أو تساقط تراب أو ماء يتسرّب؛ أو نظام الحماية ناقص أو متضرّر أو متحرّك؛ أو الماء يتجمّع؛ أو شمّيت غاز أو حسّيت بتعب؛ أو فيه تراب أو مواد أو معدات على الحافة؛ أو نزل مطر بعد آخر فحص؛ أو صندوق الخندق ينرفع أو يتحرّك وفيه أحد."}};
+const TK={
+  en:{btn:"Slope",t:"Sloping calculator",d:["Type A","Type B","Type C"],sm:["3/4:1, 53°","1:1, 45°","1½:1, 34°"],L:"Depth",W:"Bottom width",
+    res:(h,w)=>`Cut each side back ${h} m. Top width ${w} m.`,shallow:"Under 5 ft (1.52 m): a protective system may not be needed if a competent person finds no sign of a cave-in (OSHA 1926.652(a)(1)).",
+    deep:"Over 20 ft (6.1 m): sloping must be designed by a registered professional engineer.",shortA:"Type A, open 24 hours or less and 12 ft (3.66 m) or less deep: 1/2:1 (63°) is allowed.",
+    note:"<b>Illustrative only.</b> Maximum allowable slopes from OSHA 1926 Subpart P, Appendix B. A competent person must classify the soil (Appendix A); layered soils follow Appendix B. This never replaces the site’s excavation plan."},
+  ar:{btn:"الميول",t:"حاسبة الميول",d:["تربة A","تربة B","تربة C"],sm:["3/4:1، 53°","1:1، 45°","1½:1، 34°"],L:"العمق",W:"عرض القاع",
+    res:(h,w)=>`انقص كل جهة ${h} م، وعرض الفتحة من فوق ${w} م.`,shallow:"أقل من 5 قدم (1.52 م): ممكن ما يحتاج نظام حماية إذا الشخص المختص ما لقى أي علامة انهيار (OSHA 1926.652(a)(1)).",
+    deep:"أكثر من 20 قدم (6.1 م): الميول لازم يصمّمها مهندس مسجّل.",shortA:"تربة A، مفتوحة 24 ساعة أو أقل وعمقها 12 قدم (3.66 م) أو أقل: مسموح 1/2:1 (63°).",
+    note:"<b>للتوضيح بس.</b> أقصى ميول مسموحة من OSHA 1926 الجزء P، الملحق B. لازم شخص مختص يصنّف التربة (الملحق A)، والتربة اللي طبقات تمشي على الملحق B. وهذا ما يغني أبدًا عن خطة الحفر في الموقع."}};
+const USE={"sloping": {"en": {"best": ["Open sites with plenty of room around the dig", "Foundations, tanks or service connections away from roads and buildings", "Jobs where you don’t want to install support equipment in the trench"], "why": "Sloping protects workers by cutting excavation walls back to a suitable angle. It avoids installing support equipment inside the excavation but requires sufficient space and a slope appropriate to the soil and site conditions.", "alt": [["box", "There’s no room to cut back, or it’s a long pipe run"], ["hydraulic", "It’s a narrow trench next to a road or building"], ["slide", "It’s deep, in poor soil, or next to structures or services that must not settle or move"]]}, "ar": {"best": ["مواقع مفتوحة فيها مساحة واجد حوالين الحفرة", "أساسات أو خزانات أو توصيل خدمات بعيد عن الشوارع والمباني", "شغل ما تبي تركّب فيه معدات تدعيم داخل الخندق"], "why": "الميول تحمي العمّال لأن جدران الحفرة تنقصّ لزاوية مناسبة. ما تحتاج تركّب معدات تدعيم داخل الحفرة، بس تحتاج مساحة كافية وميل مناسب لنوع التربة وظروف الموقع.", "alt": [["box", "ما فيه مساحة تقصّ للخلف، أو خط مواسير طويل"], ["hydraulic", "خندق ضيق جنب شارع أو مبنى"], ["slide", "عميقة، أو التربة ضعيفة، أو جنبها مباني أو خدمات ما ينسمح إن الأرض تحتها تهبط أو تتحرك"]]}}, "benching": {"en": {"best": ["Open digs in firm clay: basements, foundation pits, large manholes", "Big open pits where stepped levels make access and staged work easier", "Sites with room around the dig, as with sloping"], "why": "Steps cut into firm, cohesive soil hold well and give working levels. Never in Type C soil, and in Type B only if it’s cohesive.", "alt": [["sloping", "The soil is sandy, gravelly or Type C"], ["slide", "There’s no room to cut steps back"]]}, "ar": {"best": ["حفريات مفتوحة في تربة طينية متماسكة: بدرومات، حفر أساسات، مناهيل كبيرة", "حفر كبيرة مفتوحة الدرجات فيها تسهّل الوصول والشغل على مراحل", "مواقع فيها مساحة حوالين الحفرة، مثل الميول"], "why": "الدرجات في التربة المتماسكة تثبت زين وتعطي مستويات للشغل. ممنوعة في تربة Type C، وفي Type B بس لو كانت متماسكة.", "alt": [["sloping", "التربة رملية أو حصى أو Type C"], ["slide", "ما فيه مساحة تقصّ درجات للخلف"]]}}, "timber": {"en": {"best": ["Trenches crossed by existing pipes or cables that a box can’t pass", "Odd-shaped pits and short sections", "Remote spots without hydraulic shores or a big excavator"], "why": "Timber can be cut to fit around whatever is in the way. It takes skill and time, and the sizes must follow the tables or the engineer’s design.", "alt": [["hydraulic", "It’s a plain narrow trench you’ll repeat many times"], ["box", "It’s a long, straight pipe run"]]}, "ar": {"best": ["خنادق تقطعها مواسير أو كيابل موجودة ما يقدر الصندوق يعدّيها", "حفر أشكالها غريبة أو مقاطع قصيرة", "أماكن بعيدة ما فيها دعامات هيدروليك أو حفّار كبير"], "why": "الخشب ينقصّ على المقاس عشان يلف حوالين أي شي معترض. بس يحتاج مهارة ووقت، والمقاسات لازم تمشي على الجداول أو تصميم المهندس.", "alt": [["hydraulic", "خندق ضيق عادي بتتكرر كثير"], ["box", "خط مواسير طويل ومستقيم"]]}}, "hydraulic": {"en": {"best": ["Narrow utility trenches in streets: water, drainage, cable lines", "Short sections that open and close the same day, again and again", "Spots where the walls must be held tight, next to roads or footings"], "why": "Usually installed and removed from outside the trench, where the system allows, so nobody enters an unprotected trench. Pressed against the walls, it holds the soil in place.", "alt": [["slide", "It’s very deep or wide, or the soil won’t stay in place (running sand, wet ground)"], ["timber", "Pipes or cables cross the trench"]]}, "ar": {"best": ["خنادق الخدمات الضيقة في الشوارع: مويه، صرف، كيابل", "مقاطع قصيرة تنفتح وتتسكّر في نفس اليوم، وتتكرر", "أماكن لازم الجدران فيها تنمسك زين، جنب الشوارع أو الأساسات"], "why": "عادةً تنركّب وتنفكّ من برّا الخندق إذا النظام يسمح، فما أحد ينزل خندق بدون حماية. ولأنها تنضغط على الجدران، تمسك التربة في مكانها.", "alt": [["slide", "عميق جدًا أو عريض، أو التربة ما تثبت وتنهار للداخل (رمل سايب أو أرض مبلولة)"], ["timber", "مواسير أو كيابل معترضة في الخندق"]]}}, "box": {"en": {"best": ["Long, straight pipeline trenches: sewer and water mains", "Dig, lay pipe, backfill and move on, section by section", "Open-ground trenches where adjacent structures or services are not at risk from ground movement"], "why": "Trench boxes protect workers from cave-ins while they work inside the shield. Movement and repositioning must follow the manufacturer’s instructions and applicable safety requirements. Workers must not remain inside during installation, removal, or vertical movement. It does not hold the walls up.", "alt": [["slide", "Roads, buildings or live services beside the trench must not settle or move"], ["timber", "Pipes or cables cross the trench"]]}, "ar": {"best": ["خنادق خطوط المواسير الطويلة والمستقيمة: صرف صحي وخطوط مويه رئيسية", "تحفر، تمدّ الماسورة، تردم، وتتقدّم مقطع ورا مقطع", "خنادق في أرض مفتوحة، ما جنبها مباني أو خدمات ممكن تتضرر لو الأرض تهبط أو تتحرك"], "why": "صندوق الخندق يحمي العمّال من الانهيار وهم يشتغلون داخله. وتحريكه ونقله لازم يمشي على تعليمات الشركة المصنّعة ومتطلبات السلامة. وما أحد يبقى داخله وقت تركيبه أو فكّه أو رفعه وتنزيله. وهو ما يمسك جدران الخندق.", "alt": [["slide", "شوارع أو مباني أو خدمات شغّالة جنب الخندق ما ينسمح إن الأرض تحتها تهبط أو تتحرك"], ["timber", "مواسير أو كيابل معترضة في الخندق"]]}}, "slide": {"en": {"best": ["Deep or wide trenches, large manholes and pump stations", "Next to roads, buildings or live services where the ground must not settle or move", "Poor or wet soils that won’t stand on their own"], "why": "Panels are installed progressively as excavation advances, providing wall support in accordance with the approved design and installation sequence. Slower and costlier to set up.", "alt": [["hydraulic", "It’s a shallow, narrow trench in good soil"], ["box", "It’s a long pipe run in open ground"]]}, "ar": {"best": ["خنادق عميقة أو عريضة، مناهيل كبيرة، ومحطات ضخ", "جنب شوارع أو مباني أو خدمات شغّالة ما ينسمح إن الأرض فيها تهبط أو تتحرك", "تربة ضعيفة أو مبلولة ما تثبت لحالها"], "why": "الألواح تنركّب خطوة بخطوة مع تقدّم الحفر، وتدعم الجدران حسب التصميم المعتمد وتسلسل التركيب. بس تركيبها أبطأ وأغلى.", "alt": [["hydraulic", "خندق ضحل وضيق في تربة زينة"], ["box", "خط مواسير طويل في أرض مفتوحة"]]}}};
+const UT={en:{btn:"Best for",t:"When to use it",best:"Use it for",why:"Why this one",alt:"Pick another when",note:"Typical uses, not a rule. A competent person selects the protective system based on soil conditions, excavation depth, water and nearby hazards. Sloping or benching deeper than 6 m (20 ft) requires a registered professional engineer’s design. Other protective systems must follow the applicable design requirements, including permitted tabulated data or an engineer’s design."},
+  ar:{btn:"يناسب إيش",t:"متى تستخدمها",best:"تنفع لـ",why:"ليش هذي",alt:"اختار غيرها إذا",note:"استخدامات معتادة، مو قاعدة. الشخص المختص يختار نظام الحماية حسب حالة التربة وعمق الحفرة والمويه والمخاطر اللي حولها. الميول أو المدرّجات الأعمق من 6 م (20 قدم) لازم لها تصميم من مهندس مسجّل ومعتمد. وباقي أنظمة الحماية لازم تمشي على متطلبات التصميم اللي تنطبق عليها، ومنها الجداول المسموح فيها أو تصميم مهندس."}};
+$("useB").onclick=()=>{st.use=!st.use;st.calc=false;st.info=false;if(st.use&&st.focus){st.focus=0;goTo(overview(st.cam.yaw))}ui()};
+$("uClose").onclick=()=>{st.use=false;ui()};
+function useUI(){const L=st.lang,ar=L==="ar",u=UT[L],ty=TY(),d=(USE[ty.key]||{})[L];
+  $("useB").textContent=u.btn;$("useB").setAttribute("aria-pressed",String(!!st.use));$("useC").classList.toggle("on",!!st.use&&!st.hist);
+  if(!d)return;$("uT").textContent=u.t+": "+ty.name[L];$("uNote").textContent=u.note;
+  const B=$("uBody");B.innerHTML="";
+  const sec=(lab,css)=>{const w=document.createElement("div");w.className="ul";const b=document.createElement("b");b.textContent=lab;b.style.cssText=css;w.appendChild(b);B.appendChild(w);return w};
+  {const w=sec(u.best,"background:#e8b400;color:#161616");const ul=document.createElement("ul");d.best.forEach(x=>{const li=document.createElement("li");li.textContent=x;ul.appendChild(li)});w.appendChild(ul)}
+  {const w=sec(u.why,"background:#161616;color:#f1ebdd");const p=document.createElement("p");p.textContent=d.why;w.appendChild(p)}
+  {const w=sec(u.alt,"border:1.5px solid #161616;color:#161616");const g=document.createElement("div");g.className="alts";
+   d.alt.forEach(([k,txt])=>{const i=TYPES.findIndex(t=>t.key===k);if(i<0)return;const b=document.createElement("button");
+     const a=document.createElement("span");a.textContent=txt;const z=document.createElement("span");z.textContent=(ar?"← ":"")+TYPES[i].name[L]+(ar?"":" →");
+     b.append(a,z);b.onclick=()=>{setType(i);st.use=true;ui();$("useC").scrollTop=0};g.appendChild(b)});w.appendChild(g)}}
+function ui(){const t=T[st.lang],ar=st.lang==="ar",o=ar?"en":"ar",ty=TY();useUI();
+  {const r=RT[st.lang];$("who").textContent=r.btn;$("who").setAttribute("aria-pressed",String(st.info));$("iT").textContent=r.t;
+   $("iRoles").innerHTML="";for(const [k,x] of r.roles){const li=document.createElement("li");const b=document.createElement("b");b.className="r-"+k;b.textContent=r[k];
+     b.style.cssText=k==="u"?"background:#e8b400":k==="c"?"background:#161616;color:#f1ebdd":"border:1.5px solid #161616";const sp=document.createElement("span");sp.textContent=x;li.append(b,sp);$("iRoles").appendChild(li)}
+   $("iStop").innerHTML=r.stop;$("iEx").textContent=r.ex;$("info").classList.toggle("on",st.info)}
+  {const k=TK[st.lang];$("load").textContent=k.btn;$("load").setAttribute("aria-pressed",String(st.calc));$("kT").textContent=k.t;$("kL").textContent=k.L;$("kW").textContent=k.W;$("kNote").innerHTML=k.note;document.querySelectorAll(".u").forEach(e=>e.textContent=ar?"م":"m");
+   const D=$("kDuty");if(!D.children.length)for(let i=0;i<3;i++){const b=document.createElement("button");b.onclick=()=>{st.duty=i;ui()};D.appendChild(b)}
+   [...D.children].forEach((b,i)=>{b.textContent=k.d[i];const s=document.createElement("small");s.textContent=k.sm[i];b.append(s);b.setAttribute("aria-pressed",String(i===st.duty))});
+   $("calc").classList.toggle("on",st.calc);calcOut()}
+  document.documentElement.lang=st.lang;document.documentElement.dir=ar?"rtl":"ltr";
+  $("title").textContent=t.title;$("subtitle").textContent=ty.desc[st.lang];$("hint").textContent=t.hint;
+  $("turn").textContent=t.turn;$("turn").setAttribute("aria-pressed",String(st.turn));$("reset").textContent=t.reset;
+  $("lang").textContent=t.lang;$("lang").lang=o;$("home").setAttribute("aria-label",ar?"الرئيسية":"Home");$("home").title=ar?"الرئيسية":"Home";
+  const nav=$("types");if(nav.children.length!==TYPES.length){nav.innerHTML="";TYPES.forEach((x,i)=>{const b=document.createElement("button");b.onclick=()=>setType(i);nav.appendChild(b)})}
+  TYPES.forEach((x,i)=>{const b=nav.children[i];b.innerHTML="";b.append(x.name[st.lang]);const s=document.createElement("small");s.textContent=x.name[o];s.lang=o;b.append(s);
+    b.setAttribute("aria-current",String(i===st.ti&&!st.hist));if(i===st.ti&&!st.hist)b.scrollIntoView({block:"nearest",inline:"nearest"})});
+  if(HIST.length){const hb=nav.children[TYPES.length];hb.innerHTML="";hb.append(ar?"التاريخ":"History");const s2=document.createElement("small");s2.textContent=ar?"History":"التاريخ";s2.lang=o;hb.append(s2);hb.setAttribute("aria-current",String(st.hist));if(st.hist)hb.scrollIntoView({block:"nearest",inline:"nearest"})}
+  document.querySelector(".app").classList.toggle("histmode",st.hist);$("hist").hidden=!st.hist;
+  if(st.hist){$("subtitle").textContent=ar?"كيف وصلت السقالات لشكلها اليوم، وليش كل قاعدة موجودة.":"How scaffolds got here, and why each rule exists.";
+    const L=k=>ar?k+"a":k;const H=$("hist");if(H.dataset.lang!==st.lang){H.dataset.lang=st.lang;H.innerHTML="";
+      const ip=document.createElement("p");ip.className="intro";ip.textContent=ar?"عشر محطات من الكهوف لليوم. كل وحدة غيّرت طريقة بناء السقالات أو فحصها. النقاط الحمراء حوادث حقيقية.":"Ten moments from the caves to today. Each one changed how scaffolds are built or checked. Red markers are real incidents.";H.appendChild(ip);
+      const ol=document.createElement("ol");HIST.forEach(h=>{const li=document.createElement("li");if(h.k==="lesson")li.className="lesson";
+        const yr=document.createElement("span");yr.className="yr";yr.textContent=ar?h.ya:h.y;li.appendChild(yr);
+        const hc=document.createElement("div");hc.className="hc";hc.innerHTML=h.svg;const tx=document.createElement("div");
+        const h3=document.createElement("h3");h3.textContent=ar?h.ta:h.t;const sm=document.createElement("small");sm.textContent=ar?h.t:h.ta;sm.lang=o;h3.appendChild(sm);
+        const p=document.createElement("p");p.textContent=ar?h.da:h.d;const ld=document.createElement("div");ld.className="led";const lb=document.createElement("b");
+        lb.textContent=h.k==="lesson"?(ar?"الدرس":"Lesson"):(ar?"أدّى إلى":"Led to");const ls=document.createElement("span");ls.textContent=ar?h.la:h.l;ld.append(lb,ls);
+        tx.append(h3,p,ld);hc.appendChild(tx);li.appendChild(hc);ol.appendChild(li)});H.appendChild(ol);
+      const sp=document.createElement("p");sp.className="src";sp.textContent=HSRC;H.appendChild(sp)}}
+  $("tbName").textContent=ty.name[st.lang];$("tbSub").textContent=ty.name[o];
+  $("explode").textContent=st.ex?t.together:t.apart;$("prev").textContent=t.back;
+  $("next").textContent=!st.focus?(st.done?t.again:t.start):(st.focus===NP()?t.done:t.next);
+  $("bar").classList.toggle("f",!!st.focus);sheet.classList.toggle("focus",!!(st.focus||st.calc||st.info||st.use));$("card").classList.toggle("on",!!st.focus);
+  if(st.focus){const d=ty.text[st.focus-1][st.lang];$("cNum").textContent=String(st.focus).padStart(2,"0");$("cName").textContent=d[0];
+    $("cName2").textContent=ty.text[st.focus-1][o][0];$("cName2").lang=o;$("cDoes").textContent=d[1];{const r=(ty.role[st.focus-1]||"c");const lo=r.toLowerCase();const RL=RT[st.lang];
+     $("cChkL").textContent=RL[lo];$("cChkL").className="role r-"+lo;$("cCrit").textContent=RL.crit;$("cCrit").classList.toggle("on",r!==lo)}$("cChk").textContent=d[2];$("cStop").textContent=d[3]||"";{const Y=ty.text[st.focus-1].you;$("cYou").hidden=!Y;if(Y){$("cYou").querySelector("b").textContent=RT[st.lang].u;$("cYou").querySelector("span").textContent=Y[st.lang]}}}
+}
+{const g=overview(TY().yaw0||.6)();st.cam.t=g.t;st.cam.d=g.d}
+if(RM)st.exT=st.ex=1;else setTimeout(()=>{st.ex=1;ui()},900);
+ui();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
