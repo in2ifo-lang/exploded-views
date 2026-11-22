@@ -4,6 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Excavation protection, exploded views | B/A The Rule</title>
+<meta name="description" content="6 excavation protective systems in interactive 3D: every part, the checks, and when to use each system. English and Arabic.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="B/A The Rule">
+<meta property="og:title" content="Excavation protection, exploded views | B/A The Rule">
+<meta property="og:description" content="6 excavation protective systems in interactive 3D: every part, the checks, and when to use each system. English and Arabic.">
+<meta property="og:url" content="https://in2ifo-lang.github.io/exploded-views/excavation/">
+<meta property="og:image" content="https://in2ifo-lang.github.io/exploded-views/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="B/A The Rule: Take it apart. See what holds. Scaffold and trench box drawings.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://in2ifo-lang.github.io/exploded-views/og.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -27,6 +40,13 @@ html[lang="ar"] body{font-family:"IBM Plex Sans Arabic","IBM Plex Sans",Tahoma,s
 .app{height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:10px;padding:12px;max-width:1100px;margin:0 auto}
 header{display:flex;align-items:center;gap:12px}
 .tag{flex:none;width:40px;height:53px}
+header{flex-wrap:wrap;row-gap:6px}
+#home{order:-1;flex:0 0 100%;display:flex;align-items:center;gap:8px;min-height:34px;color:var(--ink);text-decoration:none;font-weight:700;font-size:.9rem;border-bottom:1.5px dashed var(--rule);padding-bottom:6px}
+#home .ar-r{display:inline-block}html[lang="ar"] #home .ar-r{transform:scaleX(-1)}
+#home b{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:1.5px solid var(--ink);border-radius:5px}
+@media(hover:hover){#home:hover b{background:var(--accent)}#home:hover span{text-decoration:underline}}
+#home:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
 .titles{flex:1;min-width:0}
 h1{margin:0;font-size:clamp(1.15rem,3.6vw,1.55rem);font-weight:700;line-height:1.15}
 .sub{margin:2px 0 0;font-size:.9rem;color:var(--muted);line-height:1.35}
@@ -140,6 +160,7 @@ canvas.dragging{cursor:grabbing}
 <body>
 <div class="app">
   <header>
+    <a id="home" href="../"><b><svg class="ar-r" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></b><span id="homeT">All topics</span></a>
     <svg class="tag" viewBox="0 0 44 58" aria-label="B/A The Rule">
       <path d="M5 3h34a2 2 0 0 1 2 2v48a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="#f1ebdd" stroke="#161616" stroke-width="2"/>
       <circle cx="22" cy="11" r="3.6" fill="none" stroke="#161616" stroke-width="2"/>
@@ -609,6 +630,7 @@ function calcOut(){const k=TK[st.lang],R=[.75,1,1.5][st.duty];
   $("kOut").innerHTML="";const b=document.createElement("b");b.textContent=k.res(h.toFixed(2),w.toFixed(2));$("kOut").append(b);
   const add2=t=>{$("kOut").append(document.createElement("br"),t)};if(Dm<1.52)add2(k.shallow);if(Dm>6.1)add2(k.deep);if(st.duty===0&&Dm<=3.66)add2(k.shortA)}
 $("reset").onclick=()=>{st.focus=0;st.zoom=1;goTo(overview(TY().yaw0||.6));ui()};
+$("home").onclick=()=>{try{localStorage.setItem("ba-lang",st.lang)}catch(e){}};
 $("lang").onclick=()=>{st.lang=st.lang==="en"?"ar":"en";try{localStorage.setItem("ba-excavation-lang",st.lang)}catch(e){}ui()};
 addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(h==="history"){showHist();return}const i=TYPES.findIndex(t=>t.key===h);if(i>=0)setType(i)});
 addEventListener("keydown",e=>{if(e.target.tagName==="BUTTON"&&(e.key===" "||e.key==="Enter"))return;
@@ -661,7 +683,7 @@ function ui(){const t=T[st.lang],ar=st.lang==="ar",o=ar?"en":"ar",ty=TY();useUI(
   document.documentElement.lang=st.lang;document.documentElement.dir=ar?"rtl":"ltr";
   $("title").textContent=t.title;$("subtitle").textContent=ty.desc[st.lang];$("hint").textContent=t.hint;
   $("turn").textContent=t.turn;$("turn").setAttribute("aria-pressed",String(st.turn));$("reset").textContent=t.reset;
-  $("lang").textContent=t.lang;$("lang").lang=o;
+  $("lang").textContent=t.lang;$("lang").lang=o;$("homeT").textContent=ar?"كل المواضيع":"All topics";
   const nav=$("types");if(nav.children.length!==TYPES.length){nav.innerHTML="";TYPES.forEach((x,i)=>{const b=document.createElement("button");b.onclick=()=>setType(i);nav.appendChild(b)})}
   TYPES.forEach((x,i)=>{const b=nav.children[i];b.innerHTML="";b.append(x.name[st.lang]);const s=document.createElement("small");s.textContent=x.name[o];s.lang=o;b.append(s);
     b.setAttribute("aria-current",String(i===st.ti&&!st.hist));if(i===st.ti&&!st.hist)b.scrollIntoView({block:"nearest",inline:"nearest"})});
