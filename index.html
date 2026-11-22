@@ -1,0 +1,55 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Exploded views | B/A The Rule</title>
+<meta name="description" content="Interactive 3D exploded views of scaffold types and excavation protective systems, in English and Arabic.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{margin:0}
+body{background:#f1ebdd;color:#161616;font-family:"IBM Plex Sans",Arial,sans-serif;min-height:100vh;
+background-image:linear-gradient(rgba(22,22,22,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(22,22,22,.05) 1px,transparent 1px);background-size:22px 22px}
+[dir=rtl] body,[dir=rtl] *{font-family:"IBM Plex Sans Arabic","IBM Plex Sans",sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:22px 18px 40px}
+header{display:flex;align-items:center;gap:14px;border-bottom:2px solid #161616;padding-bottom:14px}
+.logo{width:44px;height:58px;flex:none}
+h1{font-family:"IBM Plex Sans Condensed","IBM Plex Sans Arabic",sans-serif;font-size:1.7rem;margin:0;line-height:1.1}
+header p{margin:4px 0 0;color:#4a463f;font-size:.95rem}
+.lang{margin-inline-start:auto;flex:none;border:2px solid #161616;background:#fbf8f1;color:#161616;font-weight:700;font-size:1rem;padding:9px 16px;border-radius:6px;cursor:pointer}
+.lang:hover{background:#e8b400}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:22px}
+.card{display:block;text-decoration:none;color:inherit;background:#fbf8f1;border:2px solid #161616;border-radius:8px;overflow:hidden;box-shadow:4px 4px 0 #161616;transition:transform .15s,box-shadow .15s}
+.card:hover,.card:focus-visible{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #161616;outline:none}
+.card img{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;background:#f1ebdd;border-bottom:2px solid #161616}
+.body{padding:14px 16px 16px}
+.tag{display:inline-block;background:#e8b400;font-weight:700;font-size:.78rem;padding:2px 8px;border-radius:3px}
+.card h2{font-family:"IBM Plex Sans Condensed","IBM Plex Sans Arabic",sans-serif;font-size:1.4rem;margin:8px 0 4px}
+.card p{margin:0;color:#4a463f;line-height:1.45}
+.open{display:inline-block;margin-top:12px;background:#161616;color:#f1ebdd;font-weight:700;padding:8px 14px;border-radius:5px}
+.hand{margin-top:26px;background:#fbf8f1;border:2px solid #161616;border-radius:8px;padding:14px 16px}
+.hand h3{margin:0 0 8px;font-size:1.05rem}
+.hand a{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1.5px dashed rgba(22,22,22,.28);color:#161616;text-decoration:none;font-weight:600}
+.hand a:hover span:first-child{text-decoration:underline}
+.hand a span:last-child{color:#4a463f;font-weight:500;flex:none}
+footer{margin-top:26px;font-size:.82rem;color:#7a746a;line-height:1.5}
+</style></head><body><div class="wrap">
+<header>
+<svg viewBox="0 0 44 58" class="logo" aria-label="B/A The Rule"><path d="M5 3h34a2 2 0 0 1 2 2v48a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="#fbf8f1" stroke="#161616" stroke-width="2"/><circle cx="22" cy="11" r="3.2" fill="none" stroke="#161616" stroke-width="2"/><rect x="3" y="20" width="38" height="16" fill="#e8b400"/><text x="22" y="32" text-anchor="middle" font-family="Arial" font-weight="700" font-size="12" fill="#161616">B/A</text><text x="22" y="47" text-anchor="middle" font-family="Arial" font-weight="700" font-size="5.8" fill="#161616">THE RULE</text></svg>
+<div><h1 data-t="h">Exploded views</h1><p data-t="sub">Take each system apart, see what every piece does, and when to use it.</p></div>
+<button class="lang" id="lang" type="button">عربي</button>
+</header>
+<div class="grid">
+<a class="card" href="scaffold/"><img src="img/scaffold.jpg" alt="" loading="lazy"><div class="body"><span class="tag" data-t="t1">9 types</span><h2 data-t="s">Scaffold types</h2><p data-t="sd">System, tube and coupler, frame, stair tower, mobile tower, birdcage, cantilever, suspended and trestle.</p><span class="open" data-t="o">Open</span></div></a>
+<a class="card" href="excavation/"><img src="img/excavation.jpg" alt="" loading="lazy"><div class="body"><span class="tag" data-t="t2">6 systems</span><h2 data-t="e">Excavation protection</h2><p data-t="ed">Sloping, benching, timber shoring, hydraulic shoring, trench box and slide rail.</p><span class="open" data-t="o">Open</span></div></a>
+</div>
+<div class="hand"><h3 data-t="hh">Handouts (PDF)</h3>
+<a href="handouts/Scaffold-Types-Exploded-Views.pdf"><span data-t="hs">Scaffold types handout</span><span>PDF</span></a>
+<a href="handouts/Excavation-Protection-Exploded-Views.pdf"><span data-t="he">Excavation protection handout</span><span>PDF</span></a>
+</div>
+<footer data-t="f">Training material for awareness. Always follow the approved design, the manufacturer’s instructions, your site procedures and the competent person.</footer>
+</div>
+<script>
+const T={ar:{h:"المناظر المفكّكة",sub:"فكّ كل نظام، وشوف وش يسوي كل جزء، ومتى تستخدمه.",t1:"9 أنواع",s:"أنواع السقالات",sd:"سقالة نظام، مواسير ومشابك، إطارات، برج درج، برج متنقّل، سقالة القفص، سقالة بارزة، معلّقة، وسقالة الحوامل.",t2:"6 أنظمة",e:"حماية الحفريات",ed:"حفر بميول، حفر بمدرّجات، التدعيم الخشبي، التدعيم الهيدروليكي، صندوق الخندق، ونظام القضبان المنزلقة.",o:"افتح",hh:"المطبوعات (PDF)",hs:"مطبوعة أنواع السقالات",he:"مطبوعة حماية الحفريات",f:"مادة تدريبية للتوعية. التزم دايمًا بالتصميم المعتمد، وتعليمات الشركة المصنّعة، وإجراءات الموقع، والشخص المختص.",b:"English"},en:{b:"عربي"}};
+document.querySelectorAll('[data-t]').forEach(e=>{T.en[e.dataset.t]=e.textContent});
+let L='en';try{L=localStorage.getItem('ba-lang')||'en'}catch(e){}
+function set(l){L=l;document.documentElement.lang=l;document.documentElement.dir=l==='ar'?'rtl':'ltr';document.querySelectorAll('[data-t]').forEach(e=>{e.textContent=T[l][e.dataset.t]});document.getElementById('lang').textContent=T[l].b;try{localStorage.setItem('ba-lang',l)}catch(e){}}
+document.getElementById('lang').onclick=()=>set(L==='en'?'ar':'en');set(L);
+</script></body></html>

@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scaffold types, exploded views | B/A The Rule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:#e7e0cf; --ink:#161616; --muted:#5d584f; --rule:rgba(22,22,22,.18);
+  --paper:#f1ebdd; --accent:#e8b400; --danger:#b8241b;
+  --btn:#161616; --btn-ink:#f1ebdd;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--page:#171614;--ink:#efe8d8;--muted:#a9a194;--rule:rgba(239,232,216,.18);--btn:#efe8d8;--btn-ink:#171614;--danger:#e0574c;color-scheme:dark}
+}
+:root[data-theme="dark"]{--page:#171614;--ink:#efe8d8;--muted:#a9a194;--rule:rgba(239,232,216,.18);--btn:#efe8d8;--btn-ink:#171614;--danger:#e0574c;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--page);color:var(--ink);overflow:hidden;
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+html[lang="ar"] body{font-family:"IBM Plex Sans Arabic","IBM Plex Sans",Tahoma,sans-serif}
+.app{height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:10px;padding:12px;max-width:1100px;margin:0 auto}
+header{display:flex;align-items:center;gap:12px}
+.tag{flex:none;width:40px;height:53px}
+.titles{flex:1;min-width:0}
+h1{margin:0;font-size:clamp(1.15rem,3.6vw,1.55rem);font-weight:700;line-height:1.15}
+.sub{margin:2px 0 0;font-size:.9rem;color:var(--muted);line-height:1.35}
+button{font:inherit;font-weight:600;font-size:.92rem;cursor:pointer;border:1.5px solid var(--ink);background:transparent;color:var(--ink);
+  border-radius:6px;padding:9px 14px;min-height:44px;line-height:1.1;transition:background .2s ease,color .2s ease}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.solid{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
+
+/* the drawing sheet stays paper in both themes: it is the drawing */
+.sheet{position:relative;min-height:0;overflow:hidden;border:1.5px solid #161616;border-radius:3px;color:#161616;
+  background-color:var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='150'%3E%3Ctext x='10' y='60' transform='rotate(-16 130 75)' font-family='Arial Black,Arial,sans-serif' font-weight='900' font-size='22' letter-spacing='3' fill='%23161616' fill-opacity='0.04'%3EB/A THE RULE%3C/text%3E%3C/svg%3E"),
+    linear-gradient(rgba(22,22,22,.065) 1px,transparent 1px),linear-gradient(90deg,rgba(22,22,22,.065) 1px,transparent 1px),
+    linear-gradient(rgba(22,22,22,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(22,22,22,.03) 1px,transparent 1px);
+  background-size:260px 150px,120px 120px,120px 120px,24px 24px,24px 24px}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+canvas.dragging{cursor:grabbing}
+.tools{position:absolute;top:10px;inset-inline-end:10px;display:flex;gap:6px;z-index:2}
+.tools button{background:var(--paper);color:#161616;border-color:#161616;min-height:38px;padding:6px 11px;font-size:.84rem}
+.tools button[aria-pressed="true"]{background:#161616;color:var(--paper)}
+.tb{position:absolute;bottom:10px;inset-inline-start:10px;z-index:2;display:flex;align-items:stretch;pointer-events:none;transition:opacity .3s ease}
+.tb .k{background:#161616;color:var(--paper);padding:6px 10px;display:grid;align-content:center}
+.tb .k b{font-size:1.05rem;line-height:1.1}
+.tb .k small{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:.7rem;opacity:.85;letter-spacing:.02em}
+.tb .n{border:1.5px solid #161616;border-inline-start:0;padding:0 9px;display:grid;place-items:center;font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;background:var(--paper)}
+.hint{position:absolute;bottom:14px;inset-inline-end:12px;z-index:2;font-size:.76rem;color:#4a463f;max-width:46%;text-align:end;pointer-events:none;transition:opacity .3s ease}
+
+.card{position:absolute;inset-inline:10px;bottom:10px;z-index:3;background:rgba(241,235,221,.97);border:1.5px solid #161616;border-radius:4px;
+  padding:12px 14px 12px;max-width:440px;transform:translateY(12px);opacity:0;pointer-events:none;transition:opacity .35s ease,transform .35s ease}
+.card.on{opacity:1;transform:none;pointer-events:auto}
+.ct{display:flex;align-items:center;gap:9px}
+.num{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;background:#161616;color:var(--paper);padding:1px 7px;border-radius:2px;flex:none}
+.nm{margin:0;font-size:1.12rem;font-weight:700;line-height:1.2}
+.nm2{font-size:.8rem;color:#5d584f;margin-inline-start:2px}
+.x{margin-inline-start:auto;min-height:34px;min-width:34px;padding:0;border-color:#161616;color:#161616;font-size:1.1rem}
+.does{margin:6px 0 0;font-size:.96rem;line-height:1.45}
+.chk{margin:8px 0 0;font-size:.96rem;line-height:1.45;display:flex;gap:8px}
+.chk b{flex:none;background:var(--accent);padding:0 6px;border-radius:2px;height:fit-content}
+.stop{color:#b8241b;font-weight:700}
+.card .chk{display:block}.card .chk b{display:inline-block;margin:0 6px 3px 0}
+#card{max-height:calc(100% - 20px);overflow:auto}
+@media (max-width:560px){.sub{font-size:.8rem;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}}
+.chk b.r-c{background:#161616;color:#f1ebdd}
+.chk b.r-e{background:#f1ebdd;color:#161616;outline:1.5px solid #161616;outline-offset:-1.5px;box-shadow:0 0 0 2px #f1ebdd,0 0 0 3.5px #161616}
+.crit{display:none;margin-inline-start:6px;font-size:.7rem;font-weight:700;color:#b8241b;border:1.5px solid #b8241b;border-radius:3px;padding:0 4px;vertical-align:2px}
+.crit.on{display:inline-block}
+.roles{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:7px}
+.roles li{font-size:.9rem;line-height:1.4;display:flex;gap:8px;align-items:flex-start}
+.roles li b{flex:none;padding:0 6px;border-radius:2px;font-size:.78rem}
+.stopl{margin:8px 0 0;font-size:.86rem;line-height:1.45}
+.stopl b{color:#b8241b}
+#info{max-height:calc(100% - 64px);overflow:auto}
+.sheet.focus .tb,.sheet.focus .hint{opacity:0}
+
+.duty{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.duty button{min-height:46px;padding:5px;border-color:#161616;color:#161616;font-size:.86rem}
+.duty button small{display:block;font-weight:500;font-size:.72rem;opacity:.75}
+.duty button[aria-pressed="true"]{background:#161616;color:#f1ebdd}
+.dims{display:flex;gap:10px;margin-top:8px}
+.dims label{flex:1;display:flex;align-items:center;gap:6px;font-size:.88rem;color:#161616}
+.dims input{width:100%;min-width:0;font:inherit;font-weight:600;padding:7px 8px;border:1.5px solid #161616;border-radius:4px;background:#fff;color:#161616}
+.dims i{font-style:normal;color:#5d584f}
+.kout b{font-size:1.25rem}
+.hist{position:absolute;inset:0;z-index:5;background:var(--paper);overflow:auto;padding:14px 14px 28px;color:#161616}
+.hist .intro{max-width:760px;margin:0 auto 12px;font-size:.95rem;line-height:1.5}
+.hist ol{list-style:none;margin:0 auto;padding:0;max-width:760px;position:relative}
+.hist ol:before{content:"";position:absolute;inset-inline-start:15px;top:6px;bottom:6px;width:2px;background:#161616}
+.hist li{position:relative;padding-inline-start:40px;margin-bottom:16px}
+.hist li:before{content:"";position:absolute;inset-inline-start:9px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--paper);border:2px solid #161616}
+.hist li.lesson:before{background:#b8241b;border-color:#b8241b}
+.hist .yr{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif;font-weight:700;font-size:.9rem;background:#161616;color:#f1ebdd;display:inline-block;padding:1px 8px;border-radius:2px}
+.hist .hc{display:grid;grid-template-columns:150px 1fr;gap:12px;margin-top:6px;background:rgba(255,255,255,.45);border:1.5px solid #161616;border-radius:4px;padding:10px}
+.hist .hc svg{width:150px;height:auto;display:block}
+.hist h3{margin:0;font-size:1.05rem}.hist h3 small{display:block;font-weight:500;font-size:.78rem;color:#5d584f;margin-top:1px}
+.hist p{margin:5px 0 0;font-size:.92rem;line-height:1.45}
+.hist .led{margin-top:7px;font-size:.88rem;display:flex;gap:7px;align-items:flex-start}
+.hist .led b{flex:none;background:#e8b400;padding:0 6px;border-radius:2px;font-size:.78rem}
+.hist li.lesson .led b{background:#b8241b;color:#fff}
+.hist .src{max-width:760px;margin:6px auto 0;font-size:.74rem;color:#5d584f;line-height:1.45}
+@media (max-width:520px){.hist .hc{grid-template-columns:1fr}.hist .hc svg{width:100%;max-width:220px}}
+.app.histmode .bar,.app.histmode .tools{visibility:hidden}
+.bar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bar.f{grid-template-columns:1fr 1fr 1.2fr}
+.bar #prev{display:none}.bar.f #prev{display:block}
+.bar button{width:100%}
+@media (min-width:900px){.app{padding:18px}.bar{max-width:640px;margin-inline-start:auto}.bar.f{max-width:640px}}
+.bar{grid-template-columns:1fr 1fr 1fr}.bar.f #useB{display:none}.bar.f{grid-template-columns:1fr 1fr 1.2fr}
+.bar button{padding-inline:8px}
+#useC{max-height:calc(100% - 64px);overflow:auto}
+.ul{margin:9px 0 0}.ul>b{display:inline-block;font-size:.78rem;padding:0 6px;border-radius:2px;margin-bottom:4px}
+.ul ul{margin:0;padding-inline-start:18px}.ul li{font-size:.92rem;line-height:1.42;margin:2px 0}
+.ul p{margin:0;font-size:.92rem;line-height:1.45}
+.ul+.ul{border-top:1.5px dashed rgba(22,22,22,.28);padding-top:9px;margin-top:10px}
+#uNote{margin-top:11px!important;padding:7px 9px;border:1.5px solid #161616;border-radius:4px;background:rgba(232,180,0,.16);color:#161616;font-size:.82rem;line-height:1.4}
+.alts{display:grid;gap:6px;margin-top:2px}
+.alts button{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:start;min-height:42px;padding:7px 10px;border-color:#161616;color:#161616;font-weight:500;font-size:.88rem;line-height:1.3;background:rgba(255,255,255,.4)}
+.alts button span:last-child{flex:none;font-weight:700;font-size:.82rem;white-space:nowrap}
+.alts button:hover{background:#161616;color:#f1ebdd}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.app{grid-template-rows:auto auto 1fr auto}
+.types{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.types::-webkit-scrollbar{display:none}
+.types button{flex:none;min-height:38px;padding:6px 12px;font-size:.86rem;border-color:var(--rule);border-width:1.5px}
+.types button[aria-current="true"]{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
+.hint{display:none}@media (min-width:560px){.hint{display:block}}
+.types button small{display:block;font-weight:500;font-size:.68rem;opacity:.7;margin-top:1px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <svg class="tag" viewBox="0 0 44 58" aria-label="B/A The Rule">
+      <path d="M5 3h34a2 2 0 0 1 2 2v48a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="#f1ebdd" stroke="#161616" stroke-width="2"/>
+      <circle cx="22" cy="11" r="3.6" fill="none" stroke="#161616" stroke-width="2"/>
+      <rect x="3" y="20" width="38" height="17" fill="#e8b400"/>
+      <text x="22" y="33" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="12.5" fill="#161616">B/A</text>
+      <text x="22" y="47" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="6.6" fill="#161616">THE RULE</text>
+    </svg>
+    <div class="titles"><h1 id="title"></h1><p class="sub" id="subtitle"></p></div>
+    <button id="lang"></button>
+  </header>
+  <nav class="types" id="types" aria-label="Scaffold types"></nav>
+
+  <div class="sheet" id="sheet">
+    <canvas id="cv" aria-label="3D exploded drawing of a scaffold"></canvas>
+    <div class="tools"><button id="turn" aria-pressed="true"></button><button id="reset"></button><button id="load"></button><button id="who"></button></div>
+    <div class="tb"><div class="k"><b id="tbName"></b><small id="tbSub"></small></div></div>
+    <div class="hint" id="hint"></div>
+    <div class="hist" id="hist" hidden></div>
+    <div class="card calc" id="calc" aria-live="polite">
+      <div class="ct"><h2 class="nm" id="kT"></h2><button class="x" id="kClose" aria-label="Close">×</button></div>
+      <div class="duty" id="kDuty"></div>
+      <div class="dims"><label><span id="kL"></span><input id="kLen" type="number" inputmode="decimal" step="0.05" min="0.5" max="4" value="2.0"><i class="u">m</i></label>
+        <label><span id="kW"></span><input id="kWid" type="number" inputmode="decimal" step="0.05" min="0.5" max="2.5" value="1.25"><i class="u">m</i></label></div>
+      <p class="does kout" id="kOut"></p>
+      <p class="nm2" id="kNote"></p>
+    </div>
+    <div class="card calc" id="info" aria-live="polite">
+      <div class="ct"><h2 class="nm" id="iT"></h2><button class="x" id="iClose" aria-label="Close">×</button></div>
+      <ul class="roles" id="iRoles"></ul>
+      <p class="stopl" id="iStop"></p>
+      <p class="nm2" id="iEx" style="margin-top:8px"></p>
+    </div>
+    <div class="card calc" id="useC" aria-live="polite">
+      <div class="ct"><h2 class="nm" id="uT"></h2><button class="x" id="uClose" aria-label="Close">×</button></div>
+      <div id="uBody"></div>
+      <p class="nm2" id="uNote" style="margin-top:9px"></p>
+    </div>
+    <div class="card" id="card" aria-live="polite">
+      <div class="ct"><span class="num" id="cNum"></span><div><h2 class="nm" id="cName"></h2><span class="crit" id="cCrit"></span><span class="nm2" id="cName2"></span></div><button class="x" id="close" aria-label="Close">×</button></div>
+      <p class="does" id="cDoes"></p>
+      <p class="chk" id="cYou" hidden><b class="role r-u"></b><span></span></p>
+      <p class="chk"><b id="cChkL" class="role"></b><span><span id="cChk"></span> <span class="stop" id="cStop"></span></span></p>
+    </div>
+  </div>
+
+  <div class="bar" id="bar">
+    <button id="prev"></button>
+    <button id="useB" aria-pressed="false"></button>
+    <button id="next"></button>
+    <button id="explode" class="solid"></button>
+  </div>
+</div>
+
+<script>
+(()=>{
+"use strict";
+const T={
+  en:{title:"Scaffolds",hint:"Drag to turn. Pinch or scroll to zoom. Tap a layer.",turn:"Turn",reset:"Reset",
+    apart:"Pull apart",together:"Put together",start:"Start the check",next:"Next layer",back:"Back",done:"Finish",again:"Check again",
+    check:"Check",lang:"عربي",elev:"Front elevation"},
+  ar:{title:"السقالات",hint:"اسحب عشان تلفّها. قرّب بأصبعين أو بعجلة الماوس. اضغط على أي طبقة.",turn:"لف",reset:"رجّع",
+    apart:"فكّ الطبقات",together:"ركّب الطبقات",start:"ابدأ الفحص",next:"الطبقة الجاية",back:"السابقة",done:"خلصت",again:"افحص من جديد",
+    check:"افحص",lang:"English",elev:"منظر أمامي"}
+};
+/* shared layer texts */
+const TX={
+  guard:{en:["Guardrails and toe boards","Stop people and tools falling from the open edges.","Heights as the applicable standard and site procedure require (OSHA 1926.451(g)(4)(ii): generally 38–45 in, subject to its conditions). Mid rail about halfway, toe board on every open side. Where materials could fall on people below, add screening, barricades or overhead protection (OSHA 1926.451(h))."],
+         ar:["الدرابزين وحاجز القدم","يمنعون الناس والعدّة يطيحون من الأطراف المفتوحة.","الارتفاعات حسب المواصفة المطبّقة وإجراءات الموقع (‏OSHA 1926.451(g)(4)(ii): بشكل عام من 38 إلى 45 إنش، حسب شروطها). الدرابزين الوسطي تقريبًا في النص، وحاجز قدم على كل جهة مفتوحة. وإذا ممكن تطيح أغراض على الناس تحت، أضف شبك أو حواجز أو حماية من فوق (OSHA 1926.451(h))."]},
+  guardDrop:{en:["Guardrails, toe boards and drop bar","Stop people and tools falling. The drop bar closes the access opening.","Rails and toe board on every open side. The drop bar, hung on a false upright, falls shut by itself."],
+         ar:["الدرابزين وحاجز القدم والبوابة","يمنعون الناس والعدّة يطيحون، والبوابة تسكّر فتحة الدخول.","درابزين وحاجز قدم على كل جهة مفتوحة، والبوابة المعلّقة على عمود جانبي تنزل وتتسكّر لحالها."]},
+  ladder:{en:["Access ladder","The safe way up. Never climb the frame.","Tied at the top and bottom, side rails at least 3 ft (0.9 m) above the landing; many sites ask for 1 m. Leaning ladders only: 4 up for every 1 out."],
+          ar:["سلّم الصعود","الطريقة الآمنة للطلوع. لا تتسلّق السقالة نفسها.","مربوط من فوق وتحت، وجوانبه طالعة 0.9 م (3 قدم) على الأقل فوق المنصة، ومواقع كثير تطلب متر. السلّم المسنود بس: كل 4 لفوق، 1 لبرّا."]},
+  tag:{en:["Scaffold tag","Shows the scaffold’s inspection and authorisation status, including any limits on use.","Green tag: inspected and released for use under the conditions written on it. Still check its date, the scaffold’s condition and the allowed load. Yellow tag: restricted, only as the site procedure and inspector allow.","Red tag or no tag: do not use."],
+       ar:["بطاقة السقالة","توضح حالة فحص السقالة والسماح باستخدامها، وأي قيود عليها.","البطاقة الخضراء: مفحوصة ومسموح استخدامها حسب الشروط المكتوبة عليها، ومع كذا افحص تاريخها وحالة السقالة والحمل المسموح. البطاقة الصفراء: استخدام مقيّد، بس حسب إجراءات الموقع وموافقة المفتش.","بطاقة حمراء أو ما فيه بطاقة: لا تستخدمها."]},
+  base:{en:["Sole boards and base plates","Spread the load into the ground under every standard.","Ground or surface confirmed to carry the load: no soft spots, voids or washout. Base plates and sole boards as the design requires. Base area barricaded."],
+        ar:["ألواح القاعدة والقواعد","توزّع الحمل على الأرض تحت كل عمود.","الأرض أو السطح متأكدين إنه يتحمّل الحمل: ما فيه أماكن رخوة أو فراغات أو تجريف. القواعد وألواح القاعدة حسب التصميم، والمنطقة حول القاعدة محاوطة."]},
+  boards:{en:["Platform boards","The surface you stand and work on.","Fully boarded with no gaps. Overhang and support as the standard and maker require. Boards not split or warped, and secured so they can’t slide or lift.","Never stand on boxes, barrels or other makeshift devices to gain height."],
+          ar:["ألواح المنصة","المكان اللي توقف وتشتغل عليه.","مغطّاة كاملة بدون فراغات، والبروز والإسناد حسب المواصفة والشركة المصنّعة، والألواح مو مشقوقة ولا معوجة، ومثبّتة عشان ما تزحف ولا ترتفع.","لا توقف على صناديق أو براميل أو أي شي مرتجل عشان تعلى."]},
+  ties:{en:["Ties","Hold the scaffold to the building so it cannot fall away from the wall.","In place at the spacing on the design.","Never remove a tie without approval."],
+        ar:["الربطات","تربط السقالة بالمبنى عشان ما تطيح بعيد عن الجدار.","موجودة بالمسافات اللي في التصميم.","لا تفك أي ربطة بدون موافقة."]}
+};
+
+/* math */
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],mul=(a,s)=>[a[0]*s,a[1]*s,a[2]*s];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const len=a=>Math.hypot(a[0],a[1],a[2]),nrm=a=>{const l=len(a)||1;return [a[0]/l,a[1]/l,a[2]/l]};
+const lerp=(a,b,t)=>a+(b-a)*t,lerp3=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,TAU=Math.PI*2;
+
+/* ---------- geometry kit ---------- */
+let LAY,CTX;
+function G(id,off){const g={off,prims:[]};LAY[id-1].groups.push(g);return g}
+const tube=(g,a,b,r=.024,kind)=>g.prims.push({k:"t",a,b,r,kind});
+function boxP(g,c,s,kind="board",lines=0,axis=0){
+  const [hx,hy,hz]=s.map(v=>v/2);const P=[];
+  for(const x of[-hx,hx])for(const y of[-hy,hy])for(const z of[-hz,hz])P.push([c[0]+x,c[1]+y,c[2]+z]);
+  for(const q of[[0,1,3,2],[4,6,7,5],[0,4,5,1],[2,3,7,6],[0,2,6,4],[1,5,7,3]])g.prims.push({k:"p",pts:q.map(i=>P[i]),ref:c,kind});
+  for(let i=1;i<=lines;i++){const f=i/(lines+1);
+    if(axis===0)g.prims.push({k:"s",a:[c[0]-hx*.96,c[1]+hy+.001,c[2]-hz+2*hz*f],b:[c[0]+hx*.96,c[1]+hy+.001,c[2]-hz+2*hz*f],st:"grain"});
+    else g.prims.push({k:"s",a:[c[0]-hx+2*hx*f,c[1]+hy+.001,c[2]-hz*.96],b:[c[0]-hx+2*hx*f,c[1]+hy+.001,c[2]+hz*.96],st:"grain"});}
+}
+function rosette(g,c,r=.055){const pts=[];for(let i=0;i<16;i++){const a=i/16*TAU,rr=i%2?r*.78:r;pts.push([c[0]+rr*Math.cos(a),c[1],c[2]+rr*Math.sin(a)])}g.prims.push({k:"l",pts})}
+const coupler=(g,c,s=.06)=>boxP(g,c,[s,s,s],"steel");
+function disc(g,c,r,axis="z",kind="dark"){const pts=[];for(let i=0;i<14;i++){const a=i/14*TAU;
+  pts.push(axis==="y"?[c[0]+r*Math.cos(a),c[1],c[2]+r*Math.sin(a)]:axis==="z"?[c[0]+r*Math.cos(a),c[1]+r*Math.sin(a),c[2]]:[c[0],c[1]+r*Math.sin(a),c[2]+r*Math.cos(a)])}
+  g.prims.push({k:"p",pts,ref:axis==="y"?[c[0],c[1]-1,c[2]]:axis==="z"?[c[0],c[1],c[2]-1]:[c[0]-1,c[1],c[2]],kind,two:1})}
+function ladder(g,x,zc,y0,y1,ties=[],tx){for(const z of[zc-.21,zc+.21])tube(g,[x,y0,z],[x,y1,z],.021);
+  for(let y=y0+.3;y<y1-.05;y+=.3)tube(g,[x,y,zc-.21],[x,y,zc+.21],.013);
+  for(const y of ties)for(const z of[zc-.21,zc+.21])tube(g,[x,y,z],[tx,y,zc+(z-zc)*2.4],.015)}
+/* tag in a plane facing along ±x (sx) or ±z (sz) */
+function tagAt(g,c,face){const [x,y,z]=c;const P=(u,v)=>face==="x"?[x,y+v,z+u]:[x+u,y+v,z];const ref=face==="x"?[x+.05,y,z]:[x,y,z-.05];
+  const quad=(u0,u1,v0,v1)=>[P(u0,v0),P(u1,v0),P(u1,v1),P(u0,v1)];
+  g.prims.push({k:"p",pts:quad(-.07,.07,-.13,.13),ref,kind:"tag",e:1,two:1});
+  g.prims.push({k:"p",pts:quad(-.07,.07,.05,.1),ref,kind:"tagband",two:1});
+  for(let i=0;i<4;i++){const v=.01-i*.03;g.prims.push({k:"s",a:P(-.05,v),b:P(i===3?.01:.05,v),st:"ink"})}}
+const ctxL=(a,b)=>CTX.push([a,b]);
+function ctxRect(pts){for(let i=0;i<pts.length;i++)ctxL(pts[i],pts[(i+1)%pts.length])}
+
+/* ---------- the six scaffold types ---------- */
+const TYPES=[
+/* 1. System (ringlock) */
+{key:"system",name:{en:"System (ringlock)",ar:"سقالة نظام (رينغ لوك)"},
+ desc:{en:"Tubes lock into rosettes at fixed heights. Quick to build and the most common type on site.",ar:"المواسير تتركّب في وردات على ارتفاعات ثابتة. سريعة التركيب وأكثر نوع منتشر في المواقع."},
+ dim:"4.0 m",
+ text:[
+  {en:["Sole boards","Spread the scaffold’s weight over soft or uneven ground.","Ground confirmed to carry the load. Sole boards wherever the design or the ground needs them, with no settlement."],ar:["ألواح القاعدة","توزّع وزن السقالة على الأرض الرخوة أو غير المستوية.","الأرض متأكدين إنها تتحمّل الحمل، وألواح القاعدة موجودة حيث يطلب التصميم أو الأرض، وما فيه هبوط."]},
+  {en:["Base plates and jacks","Sit under each standard. The screw jack levels the scaffold.","Centred on the sole board. Jacks not wound out too far."],ar:["القواعد وقواعد الضبط اللولبية","تكون تحت كل عمود، وقاعدة الضبط اللولبية (الجك) تضبط استواء السقالة.","في نص اللوح، وقاعدة الضبط مو مفتوحة زيادة."]},
+  {en:["Standards","The upright tubes that carry the load down to the ground.","Plumb, not bent or cracked. Joints line up."],ar:["الأعمدة","المواسير الواقفة اللي تنزّل الحمل للأرض.","واقفة عدل، مو معوجة ولا مشروخة، والوصلات على خط واحد."]},
+  {en:["Ledgers","Run along the length and tie the standards together at every lift.","Installed at the lift positions the approved configuration requires. Every wedge locked in its rosette."],ar:["المواسير الطولية","تمشي بطول السقالة وتربط الأعمدة ببعض في كل دور.","مركّبة في الأدوار اللي يطلبها التركيب المعتمد، وكل إسفين مقفول في الوردة."]},
+  {en:["Transoms","Run across the width and hold up the platform boards.","Supporting every board as the system requires. None missing."],ar:["المواسير العرضية","تمشي بعرض السقالة وتشيل ألواح المنصة.","تسند كل لوح حسب ما يطلب النظام، وما فيه شي ناقص."]},
+  {en:["Bracing","Diagonals that stop the scaffold swaying or leaning.","Fitted where the configuration requires. None removed or loose."],ar:["التدعيم المائل","المواسير المائلة اللي تمنع السقالة تتمايل أو تميل.","مركّب حسب ما يطلب التركيب المعتمد، وما فيه شي مفكوك أو مشال."]},
+  TX.boards,
+  {en:["Guardrails and toe boards","Stop people and tools falling from the open edges.","Top rail, mid rail and toe board on every open side. Gate closes by itself. Where materials could fall on people below, add screening, barricades or overhead protection."],ar:["الدرابزين وحاجز القدم","يمنعون الناس والعدّة يطيحون من الأطراف المفتوحة.","درابزين علوي ووسطي وحاجز قدم على كل جهة مفتوحة، والبوابة تتسكّر لحالها. وإذا ممكن تطيح أغراض على الناس تحت، أضف شبك أو حواجز أو حماية من فوق."]},
+  TX.ladder,TX.tag],
+ views:{1:{pitch:.45},2:{pitch:.35},5:{pitch:.45,yaw:.9},6:{yaw:2.35},7:{pitch:.75},9:{yaw:-1.05},10:{yaw:-1.25,pitch:.05,d:1.7}},
+ build(){
+  const XS=[-1.8,0,1.8],ZS=[-.6,.6],LIFTS=[.45,2.2,4.0];
+  {const g=G(1,[0,-.7,0]);for(const x of XS)boxP(g,[x,.025,0],[.23,.05,1.62],"board",2,1)}
+  {const g=G(2,[0,-.35,0]);for(const x of XS)for(const z of ZS){boxP(g,[x,.058,z],[.15,.012,.15],"steel");tube(g,[x,.064,z],[x,.34,z],.017);boxP(g,[x,.2,z],[.075,.03,.075],"steel")}}
+  {const g=G(3,[0,0,0]);for(const x of XS)for(const z of ZS){tube(g,[x,.3,z],[x,5.22,z],.026);for(const y of[...LIFTS,4.65,5.17])rosette(g,[x,y,z])}}
+  {const g=G(4,[0,.38,0]);for(const y of LIFTS)for(const z of ZS)for(let b=0;b<2;b++)tube(g,[XS[b]+.03,y,z],[XS[b+1]-.03,y,z],.022)}
+  {const g=G(5,[0,.76,0]);for(const y of[2.2,4.0])for(const x of XS)tube(g,[x,y+.045,-.63],[x,y+.045,.63],.022);for(const x of[-.9,.9])tube(g,[x,4.045,-.63],[x,4.045,.63],.022)}
+  {const gb=G(6,[0,0,-.6]);tube(gb,[-1.8,.45,-.6],[0,2.2,-.6],.02);tube(gb,[0,.45,-.6],[1.8,2.2,-.6],.02);tube(gb,[0,2.2,-.6],[-1.8,4.0,-.6],.02);tube(gb,[1.8,2.2,-.6],[0,4.0,-.6],.02);
+   const ge=G(6,[.6,0,0]);tube(ge,[1.8,.45,-.6],[1.8,2.2,.6],.02);tube(ge,[1.8,2.2,.6],[1.8,4.0,-.6],.02)}
+  {const g=G(7,[0,1.16,0]);for(let b=0;b<2;b++)for(let i=0;i<5;i++)boxP(g,[(XS[b]+XS[b+1])/2,4.095,-.46+i*.23],[1.76,.05,.215],"steel",1,0)}
+  {const g=G(8,[0,1.56,0]);
+   for(const y of[4.65,5.17]){for(const z of ZS)for(let b=0;b<2;b++)tube(g,[XS[b]+.03,y,z],[XS[b+1]-.03,y,z],.021);
+     tube(g,[1.8,y,-.57],[1.8,y,.57],.021);tube(g,[-1.8,y,-.57],[-1.8,y,-.27],.021);tube(g,[-1.8,y,.27],[-1.8,y,.57],.021)}
+   for(const z of ZS)boxP(g,[0,4.2,z*.985],[3.56,.15,.022],"board");boxP(g,[1.8,4.2,0],[.022,.15,1.16],"board");
+   for(const z of[-.25,.25])tube(g,[-1.8,4.2,z],[-1.8,5.15,z],.014);for(const y of[4.2,4.65,5.15])tube(g,[-1.8,y,-.25],[-1.8,y,.25],.014)}
+  {const g=G(9,[-.6,0,0]);ladder(g,-2.12,0,0,5.05,[2.2,4.0],-1.82)}
+  {const g=G(10,[-1.0,0,.12]);tagAt(g,[-2.155,1.69,.21],"x")}
+ }},
+/* 2. Tube and coupler, tied to a building */
+{key:"tube",name:{en:"Tube and coupler",ar:"مواسير ومشابك (كلامبات)"},
+ desc:{en:"Loose tubes clamped together with couplers. Fits any building shape and is tied to the wall.",ar:"مواسير منفصلة تنربط ببعض بالمشابك (الكلامبات). تمشي مع أي شكل مبنى، ومربوطة بالجدار."},
+ dim:"4.0 m",
+ text:[TX.base,
+  {en:["Standards","Upright tubes that carry the load to the ground.","Plumb and straight, spaced as the design requires. Tube joints positioned and connected as the design requires."],ar:["الأعمدة","المواسير الواقفة اللي تنزّل الحمل للأرض.","واقفة عدل ومستقيمة، والمسافات بينها حسب التصميم، ووصلات المواسير مكانها وطريقة ربطها حسب التصميم."]},
+  {en:["Ledgers","Run along the length and carry the transoms.","Base (kicker) lift and lift heights as the design requires. Level, fixed with right-angle couplers, joints as the design requires."],ar:["المواسير الطولية","تمشي بطول السقالة وتشيل المواسير العرضية.","أول ماسورة (الكيكر) وارتفاعات الأدوار حسب التصميم. مستوية، ومثبّتة بمشابك زاوية قائمة، والوصلات حسب التصميم."]},
+  {en:["Transoms","Run across the width and carry the boards.","Supporting the boards as the design requires, resting on the ledgers."],ar:["المواسير العرضية","تمشي بعرض السقالة وتشيل الألواح.","تسند الألواح حسب التصميم، وراكبة على المواسير الطولية."]},
+  {en:["Couplers","Clamp the tubes together. Right-angle couplers carry the load, swivel couplers hold the braces.","Right type in every joint. Bolts tight, nothing cracked or badly rusted."],ar:["المشابك (الكلامبات)","تربط المواسير ببعض. مشبك الزاوية القائمة يشيل الحمل، والمشبك الدوّار يمسك التدعيم.","النوع الصح في كل وصلة، والبراغي مشدودة، وما فيه شروخ أو صدأ قوي."]},
+  {en:["Bracing","Diagonals that stop the scaffold swaying along the face or across its width.","Façade and ledger braces in place, fixed close to the joints."],ar:["التدعيم المائل","مواسير مائلة تمنع السقالة تتمايل بالطول أو بالعرض.","تدعيم الواجهة والعرض موجود، ومثبّت قريب من الوصلات."]},
+  {en:["Ties","Hold the scaffold to the building so it cannot fall away from the wall.","In place at the spacing on the design.","Never remove a tie without approval."],ar:["الربطات","تربط السقالة بالمبنى عشان ما تطيح بعيد عن الجدار.","موجودة بالمسافات اللي في التصميم.","لا تفك أي ربطة بدون موافقة."]},
+  {en:["Platform boards","The surface you stand and work on.","Fully boarded, no gaps. Each board supported and overhanging as the standard and maker require, secured so it can’t slide or lift.","Never stand on boxes, barrels or other makeshift devices to gain height."],ar:["ألواح المنصة","المكان اللي توقف وتشتغل عليه.","مغطّاة كاملة بدون فراغات، وكل لوح مسنود وبارز حسب المواصفة والشركة المصنّعة، ومثبّت عشان ما يزحف ولا يرتفع.","لا توقف على صناديق أو براميل أو أي شي مرتجل عشان تعلى."]},
+  TX.guardDrop,TX.ladder,
+  {en:["Gin wheel and rope","Lifts tools and materials up the outside so no one carries them up the ladder.","Gin wheel, rope, attachments and supporting tubes suitable for the load and within their rated limits. No damage, load secured.","Keep everyone out from under the lifting zone."],ar:["البكرة والحبل","ترفع العدّة والمواد من برّا عشان ما أحد يشيلها على السلّم.","البكرة والحبل والقطع والماسورة اللي تشيلها مناسبين للحمل وضمن حدودهم المقنّنة، وما فيهم ضرر، والحمل مربوط زين.","لا تخلّي أحد يوقف تحت منطقة الرفع."]},
+  TX.tag],
+ views:{1:{pitch:.45},5:{pitch:.3,yaw:.7},6:{yaw:.35},7:{yaw:1.6,pitch:.3},8:{pitch:.75},10:{yaw:1.15},11:{yaw:1.1,pitch:.2,d:7},12:{yaw:1.3,pitch:.05,d:1.7}},
+ build(){
+  const XS=[-2,0,2],ZI=-.45,ZO=.75,ZS=[ZI,ZO],LIFTS=[.15,2.0,4.0];
+  // building face
+  ctxRect([[-3,0,-.75],[3,0,-.75],[3,6.2,-.75],[-3,6.2,-.75]]);
+  for(const x of[-1.7,.3])for(const y of[1.0,3.6])ctxRect([[x,y,-.75],[x+1.3,y,-.75],[x+1.3,y+1.4,-.75],[x,y+1.4,-.75]]);
+  {const g=G(1,[0,-.6,0]);for(const z of ZS)boxP(g,[0,.025,z],[4.6,.05,.23],"board",2,0);for(const x of XS)for(const z of ZS)boxP(g,[x,.056,z],[.15,.012,.15],"steel")}
+  {const g=G(2,[0,0,0]);for(const x of XS)for(const z of ZS)tube(g,[x,.065,z],[x,5.25,z],.026)}
+  {const g=G(3,[0,.4,0]);for(const y of LIFTS)for(const z of ZS)tube(g,[-2.25,y,z+.05],[2.25,y,z+.05],.023)}
+  {const g=G(4,[0,.8,0]);for(const y of[2.0,4.0])for(const x of[...XS,-1,1])tube(g,[x+.06,y+.05,-.62],[x+.06,y+.05,.95],.023)}
+  {const g=G(5,[0,0,.75]);for(const y of LIFTS)for(const x of XS)for(const z of ZS)coupler(g,[x,y,z+.05]);
+   for(const y of[2.0,4.0])for(const x of[...XS,-1,1])for(const z of ZS)coupler(g,[x+.06,y+.05,z+.05],.05);
+   for(const x of XS){coupler(g,[x,x===0?2.8:3.2,ZO],.055);coupler(g,[x,x===0?3.3:2.7,ZI],.055)}}
+  {const g=G(6,[0,0,.6]);tube(g,[-2,.15,ZO+.1],[0,2.0,ZO+.1],.021);tube(g,[0,2.0,ZO+.1],[2,4.0,ZO+.1],.021);tube(g,[0,.15,ZO+.1],[2,2.0,ZO+.1],.021);
+   const ge=G(6,[.6,0,0]);tube(ge,[2.08,.15,ZI],[2.08,2.0,ZO],.021);tube(ge,[2.08,2.0,ZO],[2.08,4.0,ZI],.021)}
+  {const g=G(7,[0,0,-.55]);for(const [x,y] of[[-2,2.0],[2,2.0],[0,3.4]]){tube(g,[x,y,ZI],[x,y,-.73],.022);boxP(g,[x,y,-.74],[.12,.12,.02],"steel")}}
+  {const g=G(8,[0,1.2,0]);for(let b=0;b<2;b++)for(let i=0;i<5;i++)boxP(g,[(XS[b]+XS[b+1])/2,4.125,-.36+i*.24],[1.96,.05,.225],"board",1,0)}
+  {const g=G(9,[0,1.6,0]);for(const y of[4.67,5.2]){tube(g,[-2.2,y,ZO+.05],[2.2,y,ZO+.05],.021);tube(g,[-2.05,y,ZI],[-2.05,y,ZO],.021);
+     tube(g,[2.05,y,ZI],[2.05,y,-.05],.021);tube(g,[2.05,y,.4],[2.05,y,ZO],.021)}
+   boxP(g,[0,4.23,ZO+.02],[4.0,.15,.022],"board");boxP(g,[-2.02,4.23,.15],[.022,.15,1.2],"board");
+   tube(g,[2.05,4.15,.4],[2.05,5.6,.4],.018);tube(g,[2.07,5.2,-.05],[2.07,5.2,.4],.017)}
+  {const g=G(10,[.6,0,0]);ladder(g,2.32,.18,0,5.15,[2.0,4.0],2.02)}
+  {const g=G(11,[0,.5,.6]);tube(g,[-1.0,5.0,ZI],[-1.0,5.0,ZO+.72],.022);tube(g,[-1.0,4.05,ZO],[-1.0,4.97,ZO+.62],.02);
+   coupler(g,[-1.0,5.0,ZO+.05],.055);disc(g,[-1.0,4.78,ZO+.62],.11,"x","steel");boxP(g,[-1.0,4.93,ZO+.62],[.04,.1,.04],"dark");
+   tube(g,[-1.0,4.78,ZO+.73],[-1.0,1.55,ZO+.73],.008,"rope");tube(g,[-1.0,4.78,ZO+.51],[-1.0,.9,ZO+1.05],.008,"rope");boxP(g,[-1.0,1.42,ZO+.73],[.24,.26,.24],"dark")}
+  {const g=G(12,[1.0,0,.1]);tagAt(g,[2.355,1.69,.39],"x")}
+ }},
+/* 3. Frame scaffold */
+{key:"frame",name:{en:"Frame",ar:"إطارات"},
+ desc:{en:"Ready-made frames stacked on pins and held square with cross braces. Fast for flat walls.",ar:"إطارات جاهزة تنركّب فوق بعض على مسامير، وتثبّتها المواسير المتقاطعة. سريعة للجدران المستوية."},
+ dim:"3.9 m",
+ text:[
+  {en:["Mudsills and screw jacks","Spread the load and level each frame leg.","Base plates and load spreading under the legs as the surface and approved configuration require. Jacks within the maker’s limit."],ar:["ألواح القاعدة وقواعد الضبط اللولبية","توزّع الحمل وتضبط استواء كل رجل في الإطار.","قواعد وتوزيع حمل تحت الأرجل حسب السطح والتركيب المعتمد، وقاعدة الضبط اللولبية ضمن حد الشركة."]},
+  {en:["Frames","Ready-made welded frames that carry the load.","No bent legs, cracked welds or rust. Frames plumb."],ar:["الإطارات","إطارات ملحومة جاهزة تشيل الحمل.","ما فيه أرجل معوجة أو لحام مشروخ أو صدأ، والإطارات واقفة عدل."]},
+  {en:["Coupling pins","Join each frame to the one above it.","A pin in every leg joint, held with a locking clip."],ar:["مسامير الوصل","تربط كل إطار بالإطار اللي فوقه.","مسمار في كل وصلة رجل، ومقفول بكلبس."]},
+  {en:["Cross braces","Hold the frames square and upright.","Fitted as the maker’s configuration requires, locked on their pins."],ar:["المواسير المتقاطعة","تخلّي الإطارات مربّعة وواقفة عدل.","مركّبة حسب تركيب الشركة المصنّعة، ومقفولة على مساميرها."]},
+  {en:["Steel decks","Hook onto the frame bars to form the platform.","Hooks fully seated and locked. No gaps between decks."],ar:["الألواح الحديد","تتعلّق على قضبان الإطار وتسوّي المنصة.","الهوكات راكبة كامل ومقفولة، وما فيه فراغات بين الألواح."]},
+  TX.guard,
+  {en:["Access ladder","The safe way up. Never climb the cross braces.","Tied at the top and bottom, side rails at least 3 ft (0.9 m) above the landing."],ar:["سلّم الصعود","الطريقة الآمنة للطلوع. لا تتسلّق المواسير المتقاطعة.","مربوط من فوق وتحت، وجوانبه طالعة 0.9 م (3 قدم) على الأقل فوق المنصة."]},
+  TX.tag],
+ views:{1:{pitch:.45},3:{pitch:.25},4:{yaw:.25},5:{pitch:.75},7:{yaw:-1.05},8:{yaw:-1.25,pitch:.05,d:1.7}},
+ build(){
+  const XS=[-2.1,0,2.1],ZS=[-.76,.76],Y0=[.15,2.05];
+  {const g=G(1,[0,-.6,0]);for(const z of ZS)boxP(g,[0,.025,z],[4.7,.05,.23],"board",2,0);
+   for(const x of XS)for(const z of ZS){boxP(g,[x,.056,z],[.15,.012,.15],"steel");tube(g,[x,.062,z],[x,.2,z],.017)}}
+  {const g=G(2,[0,0,0]);for(const y0 of Y0)for(const x of XS){for(const z of ZS)tube(g,[x,y0,z],[x,y0+1.88,z],.024);
+     tube(g,[x,y0+1.86,-.76],[x,y0+1.86,.76],.02);tube(g,[x,y0+1.5,-.76],[x,y0+1.5,.76],.018);
+     for(const z of[-.38,0,.38])tube(g,[x,y0+1.5,z],[x,y0+1.86,z],.012);
+     for(const s of[-1,1])tube(g,[x,y0+1.22,s*.76],[x,y0+1.5,s*.5],.012)}}
+  {const g=G(3,[0,.35,0]);for(const x of XS)for(const z of ZS){tube(g,[x,1.96,z],[x,2.14,z],.032);boxP(g,[x+.05,2.0,z],[.06,.02,.02],"dark");
+     tube(g,[x,3.86,z],[x,4.04,z],.032)}}
+  {const g=G(4,[0,0,0]);for(const y0 of Y0)for(let b=0;b<2;b++)for(const z of ZS){const zz=z*1.04;
+     tube(g,[XS[b],y0+.3,zz],[XS[b+1],y0+1.6,zz],.012);tube(g,[XS[b],y0+1.6,zz],[XS[b+1],y0+.3,zz],.012)}}
+  {const g=G(5,[0,1.0,0]);for(let b=0;b<2;b++)for(let i=0;i<3;i++){const z=-.5+i*.5;boxP(g,[(XS[b]+XS[b+1])/2,3.955,z],[2.0,.05,.47],"steel",3,0)}}
+  {const g=G(6,[0,1.45,0]);for(const x of XS)for(const z of ZS)tube(g,[x,3.98,z],[x,4.98,z],.022);
+   for(const y of[4.47,4.96]){for(const z of ZS)tube(g,[-2.1,y,z*1.03],[2.1,y,z*1.03],.019);tube(g,[2.13,y,-.76],[2.13,y,.76],.019);
+     tube(g,[-2.13,y,-.76],[-2.13,y,-.3],.019);tube(g,[-2.13,y,.3],[-2.13,y,.76],.019)}
+   for(const z of ZS)boxP(g,[0,4.08,z*1.01],[4.2,.15,.022],"board")}
+  {const g=G(7,[-.6,0,0]);ladder(g,-2.45,0,0,4.95,[2.0,3.8],-2.12)}
+  {const g=G(8,[-1.0,0,.12]);tagAt(g,[-2.485,1.69,.21],"x")}
+ }},
+/* Stair tower */
+{key:"stair",name:{en:"Stair tower",ar:"برج درج"},
+ desc:{en:"A scaffold tower with stair flights inside. Practical access for frequent movement of people when correctly designed, installed and maintained.",ar:"برج سقالة فيه درج من داخل. وسيلة صعود عملية لما الناس يطلعون وينزلون كثير، إذا كان مصمّم ومركّب ومصان صح."},
+ dim:"3.9 m",
+ text:[TX.base,
+  {en:["Standards","The upright tubes that carry the tower and the stairs.","Plumb, not bent, every joint locked."],ar:["الأعمدة","المواسير الواقفة اللي تشيل البرج والدرج.","واقفة عدل، مو معوجة، وكل وصلة مقفولة."]},
+  {en:["Ledgers and transoms","Tie the tower together and carry the stairs and landings.","Installed at the lift positions the approved configuration requires, every wedge locked."],ar:["المواسير الطولية والعرضية","تربط البرج ببعض وتشيل الدرج والمنصات.","مركّبة في الأدوار اللي يطلبها التركيب المعتمد، وكل إسفين مقفول."]},
+  {en:["Stair flights","Stair units that hook onto the ledgers. Use the handrails going up and down, keep secure footing, and don’t carry anything that stops you using the stairs safely.","Hooks seated and locked, treads not damaged, every flight complete."],ar:["الدرج","وحدات درج تتعلّق على المواسير الطولية. امسك الدرابزين وأنت طالع ونازل، وخلّ رجولك ثابتة، ولا تشيل شي يمنعك تستخدم الدرج بأمان.","الهوكات راكبة ومقفولة، والدرجات سليمة، وكل الدرج كامل."]},
+  {en:["Landings","Flat decks at each turn to rest and change direction.","Fully decked, no gaps, locked down."],ar:["منصات الاستراحة","أرضيات مستوية عند كل لفّة للراحة وتغيير الاتجاه.","مغطّاة كاملة بدون فراغات، ومقفولة في مكانها."]},
+  {en:["Handrails and guardrails","Something to hold on the stairs, and a barrier at every open edge.","At every open side of the flights and landings, as the system requires."],ar:["الدرابزين","شي تمسكه وأنت على الدرج، وحاجز عند كل طرف مفتوح.","عند كل جهة مفتوحة في الدرج والمنصات، حسب ما يطلب النظام."]},
+  {en:["Bracing","Diagonals that keep the tower square and stop it swaying.","Fitted as the design requires, none removed."],ar:["التدعيم المائل","مواسير مائلة تخلّي البرج مربّع وتمنعه يتمايل.","مركّب حسب التصميم، وما فيه شي مشال."]},
+  TX.tag],
+ views:{1:{pitch:.45},4:{yaw:.35,pitch:.3},5:{pitch:.6},6:{yaw:.5,pitch:.25},7:{yaw:.2},8:{yaw:-1.3,pitch:.05,d:1.7}},
+ build(){
+  const XS=[-1.5,0,1.5],ZS=[-.65,.65],LV=[.15,2.0,3.85];
+  {const g=G(1,[0,-.6,0]);for(const z of ZS)boxP(g,[0,.025,z],[3.4,.05,.23],"board",2,0);for(const x of XS)for(const z of ZS)boxP(g,[x,.056,z],[.15,.012,.15],"steel")}
+  {const g=G(2,[0,0,0]);for(const x of XS)for(const z of ZS){tube(g,[x,.065,z],[x,5.05,z],.026);for(const y of[...LV,4.47,5.0])rosette(g,[x,y,z])}}
+  {const g=G(3,[0,.35,0]);for(const y of LV){for(const z of ZS)tube(g,[-1.47,y,z],[1.47,y,z],.022);for(const x of[-1.5,1.5])tube(g,[x,y+.045,-.63],[x,y+.045,.63],.022)}
+   for(const y of[2.0,3.85])for(const x of[-.9,.9])tube(g,[x,y+.045,-.63],[x,y+.045,.63],.02)}
+  const flight=(g,x0,y0,x1,y1,zc)=>{for(const z of[zc-.28,zc+.28])tube(g,[x0,y0,z],[x1,y1,z],.024);
+    const n=9;for(let i=0;i<n;i++){const t=(i+.5)/n;boxP(g,[lerp(x0,x1,t),lerp(y0,y1,t)+.01,zc],[.2,.03,.54],"steel")}};
+  {const g=G(4,[0,0,-.85]);flight(g,-.9,.15,.9,2.0,-.33)}
+  {const g=G(4,[0,0,.85]);flight(g,.9,2.0,-.9,3.85,.33)}
+  {const g=G(5,[0,.6,0]);boxP(g,[1.2,2.07,0],[.58,.05,1.26],"steel",3,0);boxP(g,[-1.2,3.92,0],[.58,.05,1.26],"steel",3,0)}
+  {const g=G(6,[0,1.0,0]);
+   for(const [x0,y0,x1,y1,zs] of[[-.9,.15,.9,2.0,[-.62,-.04]],[.9,2.0,-.9,3.85,[.04,.62]]])for(const z of zs){tube(g,[x0,y0+.95,z],[x1,y1+.95,z],.02);tube(g,[x0,y0+.5,z],[x1,y1+.5,z],.016)}
+   for(const y of[4.47,5.0]){tube(g,[-1.53,y,-.63],[-1.53,y,.63],.02);for(const z of[-.67,.67])tube(g,[-1.5,y,z],[-.9,y,z],.02);tube(g,[-.9,y,-.63],[-.9,y,-.05],.02)}
+   for(const y of[2.62,3.15]){tube(g,[1.53,y,-.63],[1.53,y,.63],.02);for(const z of[-.67,.67])tube(g,[.9,y,z],[1.5,y,z],.02)}}
+  {const g=G(7,[0,0,-.5]);const z=-.69;tube(g,[-1.5,.15,z],[0,2.0,z],.02);tube(g,[0,2.0,z],[1.5,3.85,z],.02);
+   const h=G(7,[0,0,.5]);const z2=.69;tube(h,[1.5,.15,z2],[0,2.0,z2],.02);tube(h,[0,2.0,z2],[-1.5,3.85,z2],.02)}
+  {const g=G(8,[-.8,0,0]);tagAt(g,[-1.535,1.6,-.3],"x")}
+ }},
+/* 4. Mobile tower */
+{key:"tower",name:{en:"Mobile tower",ar:"برج متنقّل"},
+ desc:{en:"A light tower on wheels for short jobs. Keep within the maker’s height limit, on firm level ground, away from power lines and out of strong wind.",ar:"برج خفيف على عجلات للشغلات القصيرة. التزم بحد الارتفاع من الشركة، وعلى أرض صلبة ومستوية، وبعيد عن خطوط الكهرباء والهواء القوي."},
+ dim:"3.4 m",
+ text:[
+  {en:["Castors and brakes","Let the tower roll. The brakes lock it in place.","All four brakes locked before anyone climbs.","Don’t move the tower while anyone is on it unless the applicable requirements, the maker’s instructions and the site procedure expressly allow it."],ar:["العجلات والفرامل","تخلّي البرج يتحرّك، والفرامل تثبّته مكانه.","الأربع فرامل مقفولة قبل ما أحد يطلع.","لا تحرّك البرج وفيه أحد فوقه، إلا إذا المتطلبات المطبّقة وتعليمات الشركة وإجراءات الموقع تسمح بهذا صراحة."]},
+  {en:["Adjustable legs","Level the tower on uneven floors.","Tower level, legs inside their marked limit."],ar:["الأرجل المتعدّلة","تضبط استواء البرج على الأرض غير المستوية.","البرج مستوي، والأرجل ما تعدّت الحد المحدّد عليها."]},
+  {en:["End frames","Carry the load. Climb only frames the maker designed as integral ladders.","Frames locked together. Access only by the maker-approved integral ladder frames or other approved access, from the inside. Never climb crossbraces."],ar:["الإطارات الجانبية","تشيل الحمل. اطلع بس على الإطارات اللي صمّمتها الشركة كسلّم.","الإطارات مقفولة على بعض. الطلوع بس من إطارات السلّم المعتمدة من الشركة أو وسيلة صعود معتمدة، ومن داخل البرج. لا تتسلّق المواسير المتقاطعة أبدًا."]},
+  {en:["Braces","Horizontal and diagonal braces keep the tower rigid.","Every brace the maker’s configuration calls for, every claw locked."],ar:["الدعامات","الدعامات الأفقية والمائلة تخلّي البرج ثابت.","كل دعامة يطلبها تركيب الشركة موجودة، وكل ماسك مقفول."]},
+  {en:["Stabilisers","Increase the base width and the tower’s resistance to tipping.","Fitted exactly as the maker’s height and configuration table says, feet on the ground."],ar:["المثبّتات الجانبية","توسّع قاعدة البرج وتزيد مقاومته للانقلاب.","مركّبة بالضبط حسب جدول الشركة للارتفاع والتركيب، ورجولها على الأرض."]},
+  {you:{en:"Close the trapdoor once you are up.",ar:"سكّر البوابة بعد ما تطلع."},en:["Platform and trapdoor","The working deck. You climb up through the trapdoor.","Platform installed, hook locks engaged and structure sound."],ar:["المنصة والبوابة العلوية","منصة الشغل، وتطلع لها من فتحة البوابة.","المنصة مركّبة صح، والهوكات مقفولة، والهيكل سليم."]},
+  {you:{en:"Before climbing, check guardrails and toe boards are there and not visibly damaged.",ar:"قبل ما تطلع، تأكد إن الدرابزين وحاجز القدم موجودين وما فيهم ضرر ظاهر."},en:["Guardrails and toe boards","Stop people and tools falling from the platform edges.","Guardrails and toe boards correctly installed to the applicable requirements and the maker’s configuration."],ar:["الدرابزين وحاجز القدم","يمنعون الناس والعدّة يطيحون من أطراف المنصة.","الدرابزين وحاجز القدم مركّبين صح حسب المتطلبات المطبّقة وتركيب الشركة."]},TX.tag],
+ views:{1:{pitch:.35},2:{pitch:.3},5:{pitch:.5},6:{pitch:.8},8:{yaw:1.3,pitch:.05,d:1.7}},
+ build(){
+  const XS=[-1,1],ZS=[-.67,.67];
+  {const g=G(1,[0,-.55,0]);for(const x of XS)for(const z of ZS){disc(g,[x,.1,z],.1,"z","dark");boxP(g,[x,.21,z],[.12,.06,.06],"steel");boxP(g,[x+.1*Math.sign(x),.15,z],[.08,.02,.05],"dark")}}
+  {const g=G(2,[0,-.25,0]);for(const x of XS)for(const z of ZS){tube(g,[x,.24,z],[x,.62,z],.02);boxP(g,[x,.5,z],[.06,.05,.06],"steel")}}
+  {const g=G(3,[0,0,0]);for(const x of XS)for(const [y0,y1] of[[.55,2.45],[2.45,4.53]]){for(const z of ZS)tube(g,[x,y0,z],[x,y1,z],.025);
+     for(let y=y0+.28;y<y1-.05;y+=.28)tube(g,[x,y,-.67],[x,y,.67],.016)}}
+  {const g=G(4,[0,0,.45]);for(const z of ZS){const zz=z*1.03;tube(g,[-1,.75,zz],[1,.75,zz],.017);
+     for(const [a,b] of[[.75,1.75],[1.75,2.75]])tube(g,[-1,a,zz],[1,b,zz],.017);tube(g,[1,2.75,zz],[-1,3.3,zz],.017)}}
+  {const g=G(5,[0,0,0]);for(const x of XS)for(const z of ZS){const sx=Math.sign(x),sz=Math.sign(z);
+     tube(g,[x,1.6,z],[x+sx*.75,.06,z+sz*.75],.02);tube(g,[x,.9,z],[x+sx*.55,.5,z+sz*.55],.014);boxP(g,[x+sx*.75,.03,z+sz*.75],[.14,.04,.14],"dark")}}
+  {const g=G(6,[0,1.05,0]);boxP(g,[-.25,3.42,0],[1.45,.05,1.3],"board",4,0);boxP(g,[.73,3.42,0],[.5,.05,1.3],"board",0);
+   g.prims.push({k:"s",a:[.48,3.447,-.62],b:[.48,3.447,.62],st:"ink"});boxP(g,[.85,3.448,.45],[.12,.012,.04],"dark")}
+  {const g=G(7,[0,1.5,0]);for(const y of[3.97,4.5])for(const z of ZS)tube(g,[-1,y,z*1.03],[1,y,z*1.03],.019);
+   for(const z of ZS)boxP(g,[0,3.52,z*1.01],[2,.15,.022],"board");for(const x of XS)boxP(g,[x*1.01,3.52,0],[.022,.15,1.34],"board")}
+  {const g=G(8,[.8,0,.1]);tagAt(g,[1.035,1.6,.0],"x")}
+ }},
+/* 5. Birdcage */
+{key:"bird",name:{en:"Birdcage",ar:"سقالة القفص"},
+ desc:{en:"A grid of standards with one big deck, for working on ceilings and high walls inside large rooms.",ar:"شبكة أعمدة فوقها منصة كبيرة وحدة، للشغل على الأسقف والجدران العالية داخل القاعات الكبيرة."},
+ dim:"3.8 m",
+ text:[TX.base,
+  {en:["Standards","A grid of uprights that carries the deck.","Plumb, spaced as the design requires, each on a base plate."],ar:["الأعمدة","شبكة أعمدة واقفة تشيل المنصة.","واقفة عدل، والمسافات بينها حسب التصميم، وكل عمود فوق قاعدة."]},
+  {en:["Ledgers and transoms","Tie the grid together in both directions at every lift.","At the lift positions the approved configuration sets, in both directions. All joints tight."],ar:["المواسير الطولية والعرضية","تربط الشبكة ببعض بالاتجاهين في كل دور.","في الأدوار اللي يحددها التركيب المعتمد، وبالاتجاهين، وكل الوصلات مشدودة."]},
+  {en:["Bracing","Diagonals on the outside faces stop the whole cage swaying.","Fitted as the design requires. None removed."],ar:["التدعيم المائل","مواسير مائلة على الواجهات الخارجية تمنع القفص كله يتمايل.","مركّب حسب التصميم، وما فيه شي مشال."]},
+  {en:["Deck","One large platform for working on the ceiling.","Boarded edge to edge. No gaps or loose boards.","Never stand on boxes, barrels or other makeshift devices to gain height."],ar:["المنصة","منصة كبيرة وحدة للشغل على السقف.","مغطّاة كاملة من طرف لطرف، وبدون فراغات أو ألواح مفكوكة.","لا توقف على صناديق أو براميل أو أي شي مرتجل عشان تعلى."]},
+  TX.guard,TX.ladder,TX.tag],
+ views:{1:{pitch:.5},5:{pitch:.8},7:{yaw:-1.05},8:{yaw:-1.25,pitch:.05,d:1.7}},
+ build(){
+  const XS=[-2.7,-.9,.9,2.7],ZS=[-2.7,-.9,.9,2.7],LIFTS=[.4,2.1,3.8];
+  ctxRect([[-3.6,5.6,-3.6],[3.6,5.6,-3.6],[3.6,5.6,3.6],[-3.6,5.6,3.6]]);
+  {const g=G(1,[0,-.7,0]);for(const x of XS){boxP(g,[x,.025,0],[.23,.05,5.7],"board",2,1);for(const z of ZS)boxP(g,[x,.056,z],[.15,.012,.15],"steel")}}
+  {const g=G(2,[0,0,0]);for(const x of XS)for(const z of ZS)tube(g,[x,.065,z],[x,5.0,z],.026)}
+  {const g=G(3,[0,.5,0]);for(const y of LIFTS){for(const z of ZS)tube(g,[-2.8,y,z],[2.8,y,z],.021);for(const x of XS)tube(g,[x,y+.05,-2.8],[x,y+.05,2.8],.021)}}
+  {const g=G(4,[0,0,0]);for(const s of[-1,1]){tube(g,[-2.7,.4,s*2.78],[-.9,2.1,s*2.78],.019);tube(g,[.9,.4,s*2.78],[2.7,2.1,s*2.78],.019);tube(g,[-.9,2.1,s*2.78],[.9,3.8,s*2.78],.019);
+     tube(g,[s*2.78,.4,-2.7],[s*2.78,2.1,-.9],.019);tube(g,[s*2.78,.4,.9],[s*2.78,2.1,2.7],.019);tube(g,[s*2.78,2.1,-.9],[s*2.78,3.8,.9],.019)}}
+  {const g=G(5,[0,1.1,0]);for(let b=0;b<3;b++)for(let i=0;i<12;i++)boxP(g,[(XS[b]+XS[b+1])/2,3.9,-2.7+.225+i*.45],[1.78,.05,.44],"board",1,0)}
+  {const g=G(6,[0,1.55,0]);for(const y of[4.45,4.98]){for(const s of[-1,1]){tube(g,[-2.75,y,s*2.75],[2.75,y,s*2.75],.02);
+       if(s>0)tube(g,[2.75,y,-2.75],[2.75,y,2.75],.02);else{tube(g,[-2.75,y,-2.75],[-2.75,y,-.3],.02);tube(g,[-2.75,y,.3],[-2.75,y,2.75],.02)}}}
+   for(const s of[-1,1]){boxP(g,[0,4.0,s*2.74],[5.5,.15,.022],"board");boxP(g,[s*2.74,4.0,0],[.022,.15,5.5],"board")}}
+  {const g=G(7,[-.6,0,0]);ladder(g,-3.02,0,0,4.95,[2.1,3.8],-2.72)}
+  {const g=G(8,[-1.0,0,.12]);tagAt(g,[-3.055,1.69,.21],"x")}
+ }},
+/* Cantilever */
+{key:"cantilever",name:{en:"Cantilever",ar:"سقالة بارزة"},
+ desc:{en:"Illustrative engineered arrangement: do not construct from this drawing. Support, anchorage and load transfer must follow the approved design. Built out from the building on steel beams when the ground below can’t carry a scaffold.",ar:"ترتيب هندسي للتوضيح: لا تركّب من هالرسمة. الإسناد والتثبيت ونقل الحمل لازم حسب التصميم المعتمد. تنبني بارزة من المبنى على كمرات حديد لما الأرض تحت ما تتحمّل سقالة."},
+ dim:"6.9 m",
+ text:[
+  {en:["Cantilever beams (needles)","Steel beams that stick out from the building and carry the whole scaffold.","Beam size, spacing and anchorage exactly as on the approved drawing. Supporting slab confirmed able to carry the load."],ar:["الكمرات البارزة","كمرات حديد طالعة من المبنى وتشيل السقالة كلها.","مقاس الكمرات والمسافات والتثبيت بالضبط حسب الرسمة المعتمدة، والبلاطة متأكدين إنها تتحمّل."]},
+  {en:["Back props","In this design, props hold the inside end of each beam down. Other designs use bolted anchors instead.","As on the approved drawing: tight between floors, plumb, on structure confirmed to carry the force.","Never remove a back prop while the scaffold is standing."],ar:["الدعامات الخلفية","في هذا التصميم، الدعامات تمسك الطرف الداخلي لكل كمرة لتحت. وفيه تصاميم ثانية تستخدم براغي تثبيت بدالها.","حسب الرسمة المعتمدة: مشدودة بين الدورين، واقفة عدل، وعلى إنشاء متأكدين إنه يتحمّل القوة.","لا تشيل أي دعامة خلفية والسقالة قايمة."]},
+  {en:["Raking struts","Brace the outer ends of the beams back to the wall below.","Fixed at both ends with the anchors shown on the approved drawing."],ar:["المساند المائلة","تسند أطراف الكمرات البرّانية على الجدار اللي تحت.","مثبّتة من الطرفين بالبراغي اللي في الرسمة المعتمدة."]},
+  {en:["Standards","Upright tubes that sit on the beams, not on the ground.","Fixed to the beams so they cannot slide off. Plumb."],ar:["الأعمدة","المواسير الواقفة، وتكون فوق الكمرات مو على الأرض.","مثبّتة على الكمرات عشان ما تزحف منها، وواقفة عدل."]},
+  {en:["Ledgers and transoms","Tie the standards together and carry the boards.","Lifts as the design requires. All couplers tight."],ar:["المواسير الطولية والعرضية","تربط الأعمدة ببعض وتشيل الألواح.","الأدوار حسب التصميم، وكل المشابك مشدودة."]},
+  {en:["Bracing","Diagonals that stop the scaffold swaying along the face.","In place on the outside face, fixed close to the joints."],ar:["التدعيم المائل","مواسير مائلة تمنع السقالة تتمايل على طول الواجهة.","موجود على الواجهة البرّانية، ومثبّت قريب من الوصلات."]},
+  TX.ties,TX.boards,TX.guardDrop,TX.tag],
+ views:{1:{yaw:.9,pitch:.35},2:{yaw:2.4,pitch:.2},3:{yaw:1.3,pitch:.1},6:{yaw:.4},7:{yaw:2.0,pitch:.3},8:{pitch:.75},9:{yaw:2.4,pitch:.35},10:{yaw:3.0,pitch:.1,d:1.7}},
+ build(){
+  const XS=[-1.8,0,1.8],ZI=.35,ZO=1.2;
+  ctxRect([[-3,0,0],[3,0,0],[3,8.2,0],[-3,8.2,0]]);for(const y of[3.0,6.85])ctxRect([[-3,y,0],[3,y,0],[3,y,-3],[-3,y,-3]]);
+  ctxRect([[-.4,6.85,0],[.4,6.85,0],[.4,8.0,0],[-.4,8.0,0]]);
+  {const g=G(1,[0,0,0]);for(const x of XS)boxP(g,[x,3.075,-.05],[.12,.15,2.9],"steel")}
+  {const g=G(2,[0,0,-.7]);for(const x of XS){tube(g,[x,3.16,-1.35],[x,6.83,-1.35],.03);boxP(g,[x,3.16,-1.35],[.16,.02,.16],"steel");boxP(g,[x,6.83,-1.35],[.16,.02,.16],"steel")}}
+  {const g=G(3,[0,-.5,.35]);for(const x of XS){tube(g,[x,3.0,1.3],[x,1.6,.04],.03);boxP(g,[x,1.6,.015],[.16,.16,.02],"steel")}}
+  {const g=G(4,[0,.4,0]);for(const x of XS)for(const z of[ZI,ZO])tube(g,[x,3.16,z],[x,8.05,z],.026)}
+  {const g=G(5,[0,.8,0]);for(const y of[3.3,5.05,6.8])for(const z of[ZI,ZO])tube(g,[-2.0,y,z+.05],[2.0,y,z+.05],.022);
+   for(const y of[5.05,6.8])for(const x of XS)tube(g,[x+.06,y+.05,ZI-.1],[x+.06,y+.05,ZO+.15],.022);for(const x of[-.9,.9])tube(g,[x,6.85,ZI-.1],[x,6.85,ZO+.15],.022)}
+  {const g=G(6,[0,0,.6]);const z=ZO+.1;tube(g,[-1.8,3.3,z],[0,5.05,z],.02);tube(g,[0,5.05,z],[1.8,6.8,z],.02);tube(g,[0,3.3,z],[1.8,5.05,z],.02)}
+  {const g=G(7,[0,0,-.4]);for(const [x,y] of[[-1.8,5.05],[1.8,5.05],[0,6.2]]){tube(g,[x,y,ZI],[x,y,.03],.022);boxP(g,[x,y,.015],[.12,.12,.02],"steel")}}
+  {const g=G(8,[0,1.2,0]);for(let b=0;b<2;b++)for(let i=0;i<4;i++)boxP(g,[(XS[b]+XS[b+1])/2,6.92,.43+i*.22],[1.96,.05,.21],"board",1,0)}
+  {const g=G(9,[0,1.6,0]);
+   for(const y of[7.47,8.0]){tube(g,[-2.0,y,ZO+.05],[2.0,y,ZO+.05],.021);for(const x of[-1.85,1.85])tube(g,[x,y,ZI],[x,y,ZO],.021);
+     tube(g,[-2.0,y,ZI-.05],[-.35,y,ZI-.05],.021);tube(g,[.35,y,ZI-.05],[2.0,y,ZI-.05],.021)}
+   tube(g,[.35,6.95,ZI-.05],[.35,8.1,ZI-.05],.018);tube(g,[-.35,8.0,ZI-.08],[.35,8.0,ZI-.08],.017);
+   boxP(g,[0,7.02,ZO+.03],[3.9,.15,.022],"board");for(const x of[-1.86,1.86])boxP(g,[x,7.02,.78],[.022,.15,.85],"board")}
+  {const g=G(10,[0,1.9,-.3]);tagAt(g,[.6,7.35,ZI-.1],"z")}
+ }},
+/* 6. Suspended (swing stage) */
+{key:"susp",name:{en:"Suspended",ar:"معلّقة"},
+ desc:{en:"A stage hung from the roof on wire ropes, moved by hoists. Before use: approved suspension set-up, roof capacity, counterweights, hoist safety devices, independent fall protection, and rescue arrangements in place before work starts.",ar:"منصة معلّقة من السطح بحبال سلك وتتحرّك بالرافعات. قبل الاستخدام: ترتيب التعليق المعتمد، وتحمّل السطح، والأثقال، وأجهزة الأمان في الرافعات، وحماية من السقوط مستقلة، وترتيبات إنقاذ جاهزة قبل بداية الشغل."},
+ dim:"8.0 m",
+ text:[
+  {en:["Outrigger beams","Steel beams on the roof that hold the stage out from the building.","Exactly as the approved suspension arrangement, on a roof surface confirmed to carry it, secured so they cannot slide, and tied back to a sound anchorage on the building."],ar:["كمرات التعليق","كمرات حديد على السطح تمسك المنصة بعيد عن المبنى.","بالضبط حسب ترتيب التعليق المعتمد، وعلى سطح متأكدين إنه يتحمّل، ومثبّتة عشان ما تزحف، ومربوطة لورا بنقطة تثبيت قوية في المبنى."]},
+  {en:["Counterweights","Stop the beams tipping over the roof edge.","Number and arrangement exactly as the maker or approved design says, fixed in place. Only the maker’s weights.","Never use sand, bricks or water as counterweight."],ar:["الأثقال","تمنع الكمرات تنقلب على طرف السطح.","العدد والترتيب بالضبط حسب الشركة أو التصميم المعتمد، ومثبّتة، ومن نوع الشركة المصنّعة بس.","لا تستخدم رمل أو طوب أو ماي كأثقال."]},
+  {en:["Wire ropes","Carry the stage from the beams to the hoists.","No kinks, crushing, broken wires or rust. Right size and type for the hoist."],ar:["حبال السلك","تشيل المنصة من الكمرات للرافعات.","بدون لفّات أو انضغاط أو أسلاك مقطوعة أو صدأ، والمقاس والنوع مناسب للرافعة."]},
+  {en:["Hoists","Motors that climb the wire ropes to move the stage.","Required safety devices verified and pre-use function checks done as the maker’s instructions and procedure require."],ar:["الرافعات","مواتير تطلع على حبال السلك وتحرّك المنصة.","أجهزة الأمان المطلوبة متأكدين منها، وفحوصات التشغيل قبل الاستخدام مسوّاة حسب تعليمات الشركة والإجراءات."]},
+  {en:["Stage","The platform that hangs from the hoists.","Deck not damaged. Stirrups bolted to the hoists."],ar:["المنصة","المنصة المعلّقة على الرافعات.","الأرضية سليمة، والإطارات الحاملة مربوطة بالرافعات بالبراغي."]},
+  {en:["Guardrails and toe boards","Stop the crew and tools falling off the stage.","Top rail, mid rail and toe board on every side, at the heights the applicable standard sets (for suspended scaffolds, generally 36–45 in, subject to its conditions)."],ar:["الدرابزين وحاجز القدم","يمنعون العمّال والعدّة يطيحون من المنصة.","درابزين علوي ووسطي وحاجز قدم على كل جهة، بالارتفاعات اللي تحددها المواصفة المطبّقة (للسقالات المعلّقة: بشكل عام من 36 إلى 45 إنش، حسب شروطها)."]},
+  {you:{en:"Check your assigned fall-arrest equipment before use, and connect only to the designated approved anchorage.",ar:"افحص معدات الحماية من السقوط المسلّمة لك قبل الاستخدام، واربط نفسك بس في نقطة التثبيت المعتمدة المحددة."},en:["Lifelines and rope grabs","Fall arrest that does not depend on the stage, in case the stage or its suspension fails.","Fall-protection arrangement (often an independent lifeline and rope grab per worker), anchorage and components verified against the applicable requirements. Independent lifelines secured apart from the suspension system. Rescue arrangements in place before work starts.","Don’t connect to the stage or its wire ropes unless the applicable standard and approved system design expressly allow it."],ar:["حبال النجاة والماسك","حماية من السقوط ما تعتمد على المنصة، لو صار للمنصة أو تعليقها شي.","ترتيب الحماية من السقوط (غالبًا حبل نجاة مستقل وماسك لكل عامل) ونقطة التثبيت والقطع متأكدين منها حسب المتطلبات، وحبال النجاة المستقلة مثبّتة بعيد عن نظام التعليق. وترتيبات الإنقاذ جاهزة قبل ما يبدأ الشغل.","لا تتربط في المنصة أو حبال السلك حقتها إلا إذا المواصفة المطبّقة والتصميم المعتمد يسمحون بهذا صراحة."]},
+  TX.tag],
+ views:{1:{yaw:2.3,pitch:.45},2:{yaw:2.3,pitch:.4},3:{yaw:.7,pitch:.15},4:{yaw:.6,pitch:.15},5:{pitch:.45},6:{pitch:.35},7:{yaw:.5,pitch:.15},8:{yaw:.35,pitch:.05,d:1.7}},
+ build(){
+  const XB=[-2.2,2.2];
+  // building: face, roof, parapet
+  ctxRect([[-3.4,0,0],[3.4,0,0],[3.4,8.0,0],[-3.4,8.0,0]]);ctxRect([[-3.4,8.0,0],[3.4,8.0,0],[3.4,8.0,-4.2],[-3.4,8.0,-4.2]]);
+  ctxRect([[-3.4,8.45,0],[3.4,8.45,0],[3.4,8.45,-.2],[-3.4,8.45,-.2]]);for(const x of[-3.4,3.4])ctxL([x,8,0],[x,8.45,0]);
+  for(let y=1.2;y<7.5;y+=2.2)for(const x of[-2.6,-.6,1.4])ctxRect([[x,y,0],[x+1.2,y,0],[x+1.2,y+1.3,0],[x,y+1.3,0]]);
+  {const g=G(1,[0,.8,0]);for(const x of XB){boxP(g,[x,8.7,-1.6],[.1,.14,4.4],"steel");tube(g,[x,8.66,-3.78],[x,8.05,-4.15],.007,"wire");boxP(g,[x,8.03,-4.15],[.14,.05,.14],"dark");for(const z of[-.35,-3.2]){tube(g,[x,8.0,z],[x,8.62,z],.03);boxP(g,[x,8.03,z],[.3,.05,.3],"steel")}}}
+  {const g=G(2,[0,1.25,-.4]);for(const x of XB)for(let i=0;i<6;i++)boxP(g,[x,8.81+i*.065,-3.45],[.32,.055,.42],"dark")}
+  {const g=G(3,[0,0,.5]);for(const x of XB){tube(g,[x,8.62,.75],[x,3.75,.75],.008,"wire");tube(g,[x+.06,3.4,.75],[x+.06,.3,.75],.008,"wire")}}
+  {const g=G(4,[0,0,1.0]);for(const x of XB){boxP(g,[x,3.55,.75],[.26,.42,.26],"steel");boxP(g,[x+.13,3.55,.75],[.04,.2,.18],"dark")}}
+  {const g=G(5,[0,-1.2,0]);boxP(g,[0,3.0,.72],[5.0,.06,.7],"steel",4,0);
+   for(const x of XB){tube(g,[x,3.03,.4],[x,4.0,.4],.024);tube(g,[x,3.03,1.04],[x,4.0,1.04],.024);tube(g,[x,4.0,.4],[x,4.0,1.04],.024)}}
+  {const g=G(6,[0,-.55,0]);for(const [y,z] of[[3.55,1.06],[4.05,1.06],[3.55,.38],[4.05,.38]])tube(g,[-2.5,y,z],[2.5,y,z],.019);
+   for(const x of[-2.5,2.5]){for(const y of[3.55,4.05])tube(g,[x,y,.38],[x,y,1.06],.019);tube(g,[x,3.03,1.06],[x,4.05,1.06],.019);tube(g,[x,3.03,.38],[x,4.05,.38],.019)}
+   for(const z of[.38,1.06])boxP(g,[0,3.11,z],[5.0,.15,.022],"board")}
+  {const g=G(7,[0,0,.8]);for(const x of[-1,1]){boxP(g,[x,8.05,-1.6],[.12,.1,.12],"dark");tube(g,[x,8.08,-1.6],[x,8.5,.04],.009,"rope");
+     tube(g,[x,8.5,.04],[x,8.4,1.32],.009,"rope");tube(g,[x,8.4,1.32],[x,.2,1.32],.009,"rope");boxP(g,[x,4.45,1.32],[.07,.14,.07],"dark")}}
+  {const g=G(8,[1.0,0,.4]);tagAt(g,[2.52,3.75,.72],"x")}
+ }},
+/* Trestle */
+{key:"trestle",name:{en:"Trestle",ar:"سقالة الحوامل"},
+ desc:{en:"Boards laid across trestle or step ladders for low, light work. OSHA 1926.452(n): platform no higher than the second-highest rung or step, suitable ladders secured against slipping, never bridged to another scaffold.",ar:"ألواح ممدودة على حوامل أو سلالم للشغل الخفيف والقريب من الأرض. OSHA 1926.452(n): المنصة ما تكون أعلى من ثاني أعلى درجة، والسلالم مناسبة ومثبّتة ضد الانزلاق، وما تنربط بسقالة ثانية."},
+ dim:"1.2 m",
+ text:[
+  {en:["Trestles","Folding A-frame stands that hold up the platform.","Suitable trestle or step ladders, legs fully open and locked, secured or fitted to stop slipping, on firm level ground. No bent legs or broken rungs. Arrangement checked by a competent person against the maker’s instructions."],ar:["حوامل السقالة","حوامل تنطوي على شكل A تشيل المنصة.","حوامل أو سلالم مناسبة، الأرجل مفتوحة كامل ومقفولة، ومثبّتة ضد الانزلاق، وعلى أرض صلبة ومستوية، وما فيه أرجل معوجة أو درجات مكسورة، والترتيب مفحوص من شخص مختص حسب تعليمات الشركة."]},
+  {en:["Stays","Braces that stop the trestles tipping over sideways.","Stays or stabilisers fitted where the approved configuration or maker requires. All supports secure and correctly positioned."],ar:["الدعامات الجانبية","دعامات تمنع الحوامل تنقلب على جنب.","الدعامات أو المثبّتات مركّبة حيث يطلب التركيب المعتمد أو الشركة المصنّعة، وكل المساند ثابتة وفي مكانها الصح."]},
+  {en:["Staging boards","Boards that span between the trestles to make the platform.","Resting no higher than the second-highest rung or step. Span within the board’s rated limit, overhang as the maker requires, no gaps, boards secured."],ar:["ألواح المنصة","ألواح ممدودة بين الحوامل تسوّي المنصة.","ما تكون أعلى من ثاني أعلى درجة. المسافة حسب حد اللوح المسموح، والبروز حسب الشركة المصنّعة، وبدون فراغات، والألواح مثبّتة."]},
+  {en:["Guardrails and toe boards","Posts clamped to the trestles carry the rails.","Guardrails, toe boards and other fall or falling-object protection as the applicable standard and configuration require."],ar:["الدرابزين وحاجز القدم","أعمدة مربوطة على الحوامل تشيل الدرابزين.","درابزين وحاجز قدم وأي حماية ثانية من السقوط أو سقوط الأغراض حسب المواصفة المطبّقة والتركيب."]},
+  TX.tag],
+ views:{1:{pitch:.2},2:{yaw:2.4,pitch:.2},3:{pitch:.7},4:{yaw:.4,pitch:.2},5:{yaw:.3,pitch:.05,d:1.6}},
+ build(){
+  const XT=[-2.4,0,2.4];
+  {const g=G(1,[0,0,0]);for(const x of XT){for(const s of[-1,1])for(const dx of[-.3,.3])boxP(g,[x+dx,.012,s*.45],[.07,.024,.09],"dark");for(const s of[-1,1]){for(const dx of[-.3,.3])tube(g,[x+dx,0,s*.45],[x+dx,1.78,s*.04],.02);
+       for(let i=1;i<6;i++){const t=i/6;tube(g,[x-.3,1.78*t,s*(.45-.41*t)],[x+.3,1.78*t,s*(.45-.41*t)],.012)}}
+     boxP(g,[x,1.8,0],[.7,.05,.14],"steel");for(const dx of[-.3,.3])tube(g,[x+dx,.6,-.31],[x+dx,.6,.31],.006,"wire")}}
+  {const g=G(2,[0,0,-.5]);for(const x of XT){tube(g,[x,1.55,-.12],[x,.03,-1.25],.018);boxP(g,[x,.02,-1.25],[.14,.04,.14],"steel")}}
+  {const g=G(3,[0,.5,0]);for(const cx of[-1.25,1.25])for(const z of[-.2,0,.2])boxP(g,[cx,1.224,z],[2.48,.05,.19],"board",1,0)}
+  {const g=G(4,[0,.95,.2]);for(const x of XT)tube(g,[x,1.0,.33],[x,2.3,.33],.022);
+   for(const y of[1.74,2.24])tube(g,[-2.6,y,.35],[2.6,y,.35],.02);for(const x of[-2.55,2.55])for(const y of[1.74,2.24])tube(g,[x,y,-.3],[x,y,.35],.02);
+   boxP(g,[0,1.32,.32],[5.0,.15,.022],"board")}
+  {const g=G(5,[0,.6,.4]);tagAt(g,[2.4,1.75,.37],"z")}
+ }}
+];
+/* who checks each layer, in layer order; capital = critical */
+const ROLE_FIX=1;const ROLE={system:"ccccccuuuu",tube:"ccccccCuuucu",frame:"ccccuuuu",stair:"ccccuucu",tower:"ucccCccu",bird:"ccccuuuu",cantilever:"EEEcccCuuu",susp:"EEcccuCu",trestle:"ccuuu"};
+/* build every type once */
+for(const t of TYPES){t.role=ROLE[t.key]||"";LAY=t.text.map((_,i)=>({id:i+1,groups:[]}));CTX=[];t.build();t.layers=LAY;t.ctx=CTX;
+  for(const L of t.layers){for(const g of L.groups){const mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];const eat=p=>{for(let a=0;a<3;a++){mn[a]=Math.min(mn[a],p[a]);mx[a]=Math.max(mx[a],p[a])}};
+      for(const q of g.prims){if(q.a){eat(q.a);eat(q.b)}else q.pts.forEach(eat)}g.mn=mn;g.mx=mx}
+    // label anchor: the primitive midpoint closest to the layer's centre
+    const g0=L.groups[0];const c=mul(add(g0.mn,g0.mx),.5);let best=null,bd=1e9;
+    for(const q of g0.prims){const m=q.a?mul(add(q.a,q.b),.5):mul(q.pts.reduce((s,p)=>add(s,p),[0,0,0]),1/q.pts.length);const d=len(sub(m,c));if(d<bd){bd=d;best=m}}
+    L.anchor=best}
+  // front elevation segments
+  const seg=[];for(const L of t.layers)for(const g of L.groups)for(const q of g.prims){if(q.k==="t")seg.push([q.a,q.b]);else if(q.k==="p"&&q.kind!=="tagband"){const xs=q.pts.map(p=>p[0]),ys=q.pts.map(p=>p[1]);
+      if(Math.max(...ys)-Math.min(...ys)>.02||Math.max(...xs)-Math.min(...xs)>.3)seg.push([[Math.min(...xs),Math.min(...ys)],[Math.max(...xs),Math.min(...ys)]])}}
+  t.elev=seg;
+}
+
+/* ---------- state ---------- */
+const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const st={use:false,hist:false,info:false,calc:false,duty:0,lang:"en",ti:0,ex:0,exT:0,turn:!RM,focus:0,drag:false,zoom:1,cam:{t:[0,2.5,0],d:12,yaw:.6,pitch:.2},tw:null,markT:0,cy:0,done:false};
+try{const l=localStorage.getItem("ba-scaffold-lang");if(l==="ar"||l==="en")st.lang=l}catch(e){}
+const H0=(location.hash||"").slice(1);if(H0==="history")st.hist=true;const hi=TYPES.findIndex(t=>t.key===H0);if(hi>=0)st.ti=hi;
+const HIST=[{"y": "17,000 years ago", "ya": "قبل 17,000 سنة", "t": "Lascaux cave, France", "ta": "كهف لاسكو، فرنسا", "d": "Paintings sit high on the cave walls. Clay-filled sockets in the rock suggest the painters rested beams in them to build a platform.", "da": "الرسومات عالية على جدران الكهف، وفيه فتحات في الصخر معبّاة طين، والأرجح إن الرسامين ركّبوا فيها أخشاب عشان يسوّون منصة.", "l": "Work at height needed a platform long before it had rules.", "la": "الشغل على ارتفاع احتاج منصة من زمان قبل ما يكون له قواعد.", "k": "led", "svg": "<svg viewBox=\"0 0 160 110\"><path d=\"M8 104 C10 40 40 8 80 8 C120 8 150 40 152 104\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M30 104 C34 60 52 34 80 32\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".35\"/><circle cx=\"46\" cy=\"58\" r=\"3.5\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"114\" cy=\"58\" r=\"3.5\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M46 58 L64 90 M114 58 L96 90\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M40 62 L120 62\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"3\"/><path d=\"M60 28 c8-6 18-6 24 0 c6-4 14-2 16 4 M66 34 l-2 8 M92 34 l2 8\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M60 62 v40 M100 62 v40\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".5\"/></svg>"}, {"y": "c. 490–480 BC", "ya": "حوالي 490–480 ق.م", "t": "The Berlin Foundry Cup, Athens", "ta": "كأس المسبك، أثينا", "d": "A Greek drinking cup shows a bronze workshop. A larger-than-life statue of a warrior stands inside a wooden scaffold.", "da": "كأس يوناني مرسوم عليه ورشة برونز، وفيه تمثال محارب أكبر من حجم الإنسان واقف داخل سقالة خشب.", "l": "One of the oldest known pictures of a scaffold.", "la": "من أقدم الصور المعروفة للسقالة.", "k": "led", "svg": "<svg viewBox=\"0 0 160 110\"><path d=\"M18 40 Q80 62 142 40\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M18 40 Q20 30 30 30 M142 40 Q140 30 130 30\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M74 58 v22 h12 v-22 M62 92 h36 l-12-12 h-12z\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M60 10 v34 M100 10 v34 M60 18 h40 M60 30 h40\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"80\" cy=\"16\" r=\"4\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M80 20 v16 M74 26 h12 M80 36 l-4 8 M80 36 l4 8\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"}, {"y": "Roman to medieval", "ya": "من الرومان للقرون الوسطى", "t": "Putlog scaffolds", "ta": "سقالات البتلوغ", "d": "Builders set horizontal timbers, called putlogs, into holes left in the wall as it rose. The holes can still be seen in Roman buildings and castles such as Beaumaris in Wales.", "da": "البنّائين كانوا يدخّلون أخشاب أفقية اسمها بتلوغ في فتحات يتركونها في الجدار وهو يرتفع، والفتحات للحين تنشاف في مباني رومانية وقلاع مثل بوماريس في ويلز.", "l": "The idea behind today’s transoms, and of tying a scaffold back to the building.", "la": "أصل فكرة المواسير العرضية اليوم، وربط السقالة بالمبنى.", "k": "led", "svg": "<svg viewBox=\"0 0 160 110\"><rect x=\"10\" y=\"10\" width=\"62\" height=\"94\" fill=\"#f1ebdd\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M10 28 h62 M10 46 h62 M10 64 h62 M10 82 h62 M30 10 v18 M52 28 v18 M30 46 v18 M52 64 v18 M30 82 v22\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".45\"/><rect x=\"40\" y=\"35\" width=\"7\" height=\"7\" fill=\"#161616\"/><rect x=\"40\" y=\"71\" width=\"7\" height=\"7\" fill=\"#161616\"/><path d=\"M44 38 L128 38 M44 74 L128 74\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"3\"/><path d=\"M122 14 V104\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2.4\"/><path d=\"M80 34 h44 M80 70 h44\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"5\" opacity=\".35\"/></svg>"}, {"y": "Centuries, still in use", "ya": "من قرون وللحين", "t": "Bamboo scaffolding", "ta": "سقالات الخيزران", "d": "Lashed bamboo poles built much of Hong Kong’s skyline. On 17 March 2025 Hong Kong’s Development Bureau began moving public works to metal scaffolds, citing safety.", "da": "أعواد الخيزران المربوطة ببعض بنت جزء كبير من مباني هونغ كونغ. وفي 17 مارس 2025 بدأت إدارة التطوير في هونغ كونغ تنقل المشاريع الحكومية للسقالات المعدنية لأسباب سلامة.", "l": "Material matters: strength, ageing and how it behaves in fire.", "la": "المادة تفرق: قوتها، وتلفها مع الوقت، وكيف تتصرف مع الحريق.", "k": "led", "svg": "<svg viewBox=\"0 0 160 110\"><g stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M30 6 V104 M64 6 V104 M98 6 V104 M132 6 V104\"/><path d=\"M14 30 H146 M14 62 H146 M14 92 H146\"/></g><g stroke=\"#161616\" stroke-width=\"1.2\"><path d=\"M27 18 h6\"/><path d=\"M27 46 h6\"/><path d=\"M27 78 h6\"/><path d=\"M61 18 h6\"/><path d=\"M61 46 h6\"/><path d=\"M61 78 h6\"/><path d=\"M95 18 h6\"/><path d=\"M95 46 h6\"/><path d=\"M95 78 h6\"/><path d=\"M129 18 h6\"/><path d=\"M129 46 h6\"/><path d=\"M129 78 h6\"/></g><g stroke=\"#161616\" stroke-width=\"1.2\"><path d=\"M26 26 l8 8 M34 26 l-8 8\"/><path d=\"M26 58 l8 8 M34 58 l-8 8\"/><path d=\"M26 88 l8 8 M34 88 l-8 8\"/><path d=\"M60 26 l8 8 M68 26 l-8 8\"/><path d=\"M60 58 l8 8 M68 58 l-8 8\"/><path d=\"M60 88 l8 8 M68 88 l-8 8\"/><path d=\"M94 26 l8 8 M102 26 l-8 8\"/><path d=\"M94 58 l8 8 M102 58 l-8 8\"/><path d=\"M94 88 l8 8 M102 88 l-8 8\"/><path d=\"M128 26 l8 8 M136 26 l-8 8\"/><path d=\"M128 58 l8 8 M136 58 l-8 8\"/><path d=\"M128 88 l8 8 M136 88 l-8 8\"/></g></svg>"}, {"y": "1913–1919", "ya": "1913–1919", "t": "Steel tube and the coupler", "ta": "الماسورة الحديد والمشبك", "d": "Daniel Palmer-Jones replaced rope lashings with steel couplers. His Scaffixer was used on Buckingham Palace in 1913. His Universal Coupler, introduced in 1918 and patented in 1919, helped establish modern tube and coupler scaffolding. His company became Scaffolding Great Britain (SGB) in 1919.", "da": "دانيال بالمر جونز استبدل ربط الحبال بمشابك حديد. مشبكه استُخدم على قصر باكنغهام في 1913، ومشبكه العام اللي طرحه في 1918 وسجّل براءته في 1919 أسّس سقالات المواسير والمشابك الحديثة، وشركته صارت Scaffolding Great Britain (SGB) في 1919.", "l": "Tube and coupler scaffolding, and the right-angle coupler still used today.", "la": "سقالات المواسير والمشابك، ومشبك الزاوية القائمة اللي للحين يُستخدم.", "k": "led", "svg": "<svg viewBox=\"0 0 160 110\"><rect x=\"72\" y=\"6\" width=\"16\" height=\"98\" fill=\"#f1ebdd\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"12\" y=\"47\" width=\"136\" height=\"16\" fill=\"#f1ebdd\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"62\" y=\"38\" width=\"36\" height=\"34\" rx=\"5\" fill=\"#d8d6d0\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"80\" cy=\"55\" r=\"7\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M98 46 h14 M98 64 h14\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M112 42 v8 M112 60 v8\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"3\"/></svg>"}, {"y": "1944", "ya": "1944", "t": "The first frame system", "ta": "أول نظام إطارات", "d": "SGB brought the first frame scaffold to market. Ready-made frames went up fast and were used widely in post-war rebuilding.", "da": "SGB طرحت أول سقالة إطارات. الإطارات الجاهزة كانت تنركّب بسرعة واستُخدمت كثير في إعادة البناء بعد الحرب.", "l": "Frame scaffolds, and the cross braces that hold them square.", "la": "سقالات الإطارات، والمواسير المتقاطعة اللي تخليها مربّعة.", "k": "led", "svg": "<svg viewBox=\"0 0 160 110\"><g stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 10 V104 M56 10 V104 M104 10 V104 M140 10 V104\"/><path d=\"M20 24 H56 M20 36 H56 M104 24 H140 M104 36 H140\"/><path d=\"M30 24 V36 M46 24 V36 M114 24 V36 M130 24 V36\"/></g><g stroke=\"#161616\" stroke-width=\"1.1\"><path d=\"M56 30 L104 96 M56 96 L104 30\"/></g></svg>"}, {"y": "1974–1976", "ya": "1974–1976", "t": "System scaffolds", "ta": "السقالات النظامية", "d": "Layher launched its Allround system in 1974, with a rosette taking up to eight connections. SGB launched Cuplok in 1976. Fixed connection points at set levels replaced loose clamps.", "da": "Layher طرحت نظام Allround في 1974 بوردة تشيل لين ثمان وصلات، وSGB طرحت Cuplok في 1976. نقاط وصل ثابتة على مستويات محددة صارت بدال المشابك المفكوكة.", "l": "Modular connections at set levels. Ringlock uses rosettes and wedge heads; Cuplok uses a cup-locking mechanism.", "la": "وصلات معيارية على مستويات ثابتة. الرينغ لوك يستخدم وردات ورؤوس بأسافين، والكب لوك يستخدم آلية قفل بالكاسات.", "k": "led", "svg": "<svg viewBox=\"0 0 160 110\"><rect x=\"72\" y=\"4\" width=\"16\" height=\"102\" fill=\"#f1ebdd\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M118.0 55.0 L107.7 61.5 L106.9 70.6 L91.5 70.7 L80.0 77.0 L68.5 70.7 L53.1 70.6 L52.3 61.5 L42.0 55.0 L52.3 48.5 L53.1 39.4 L68.5 39.3 L80.0 33.0 L91.5 39.3 L106.9 39.4 L107.7 48.5 Z\" fill=\"#d8d6d0\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"112\" y=\"48\" width=\"38\" height=\"14\" fill=\"#f1ebdd\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M118 42 v26\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"4\"/><rect x=\"10\" y=\"48\" width=\"38\" height=\"14\" fill=\"#f1ebdd\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M42 42 v26\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"4\"/></svg>"}, {"y": "27 April 1978", "ya": "27 أبريل 1978", "t": "Willow Island, West Virginia", "ta": "ويلو آيلاند، فرجينيا الغربية", "d": "A cooling tower under construction collapsed, killing all 51 workers on its scaffold. Investigators concluded that construction loads were applied before the concrete at Lift 28 had developed sufficient strength. The concrete shell failed and the attached scaffolding fell with it.", "da": "برج تبريد تحت الإنشاء انهار وتوفّوا كل العمّال الـ51 اللي على سقالته. المحققين وصلوا إن أحمال الإنشاء انحطّت قبل ما تكتسب خرسانة الطبقة 28 قوة كافية، فانهار جدار الخرسانة وطاحت معه السقالة المثبّتة فيه.", "l": "Temporary works must be supported by structures able to carry the construction loads. Verify concrete strength and load transfer before loading.", "la": "الأعمال المؤقتة لازم تكون مسنودة على إنشاءات تتحمّل أحمال البناء. تأكد من قوة الخرسانة وطريقة نقل الحمل قبل التحميل.", "k": "lesson", "svg": "<svg viewBox=\"0 0 160 110\"><path d=\"M38 104 C56 70 52 40 60 14 M122 104 C104 70 108 40 100 14\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M60 14 H100\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-dasharray=\"4 4\"/><path d=\"M54 28 h-10 M106 28 h10 M44 22 v12 M116 22 v12\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M52 20 l-8 -4 M108 20 l8 -4\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".5\"/><path d=\"M30 104 H130\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M74 6 l-4 8 M86 6 l4 8\" stroke=\"#b8241b\" stroke-width=\"1.8\"/></svg>"}, {"y": "30 August 1996", "ya": "30 أغسطس 1996", "t": "OSHA scaffold standard rewritten", "ta": "إعادة كتابة معيار السقالات في OSHA", "d": "After a review that began in 1977, OSHA issued the revised Subpart L. It added training, falling-object protection and scaffold types not covered before, and stated the guardrail rule once instead of 19 separate times.", "da": "بعد مراجعة بدأت في 1977، أصدرت OSHA الجزء L المعدّل. أضاف التدريب والحماية من سقوط الأغراض وأنواع سقالات ما كانت مغطّاة، وكتب قاعدة الدرابزين مرة وحدة بدال 19 مرة.", "l": "Most of the rules on the standards page of this guide.", "la": "أغلب القواعد اللي في صفحة المواصفات بهذا الدليل.", "k": "led", "svg": "<svg viewBox=\"0 0 160 110\"><rect x=\"40\" y=\"6\" width=\"80\" height=\"98\" fill=\"#f1ebdd\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M50 20 h44 M50 28 h60 M50 36 h52\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".5\"/><path d=\"M52 92 H108 M56 92 V58 M104 92 V58 M56 58 H104 M56 75 H104\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"/><path d=\"M52 92 h56 v-6 h-56z\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><text x=\"58\" y=\"52\" font-family=\"Liberation Sans,Arial\" font-size=\"11\" font-weight=\"700\" fill=\"#161616\">§ 1926.451</text></svg>"}, {"y": "26 November 2025", "ya": "26 نوفمبر 2025", "t": "Wang Fuk Court, Hong Kong", "ta": "وانغ فوك كورت، هونغ كونغ", "d": "Fire spread across seven towers wrapped in scaffolding for renovation. 168 people died. The independent inquiry, published 29 October 2026, found suspected substitution of fire-retardant scaffold nets with non-fire-retardant ones, plus flammable foam boards.", "da": "حريق انتشر في سبع أبراج مغطّاة بالسقالات وقت الترميم، وتوفّى 168 شخص. لجنة التحقيق المستقلة اللي نشرت تقريرها في 29 أكتوبر 2026 لقت إنه يُشتبه إن شبك السقالات المقاوم للحريق انبدل بشبك مو مقاوم، مع ألواح فوم قابلة للاشتعال.", "l": "Netting and sheeting must be genuinely fire-retardant, and checks must be real.", "la": "الشبك والأغطية لازم تكون مقاومة للحريق فعلاً، والفحص لازم يكون حقيقي.", "k": "lesson", "svg": "<svg viewBox=\"0 0 160 110\"><rect x=\"44\" y=\"8\" width=\"72\" height=\"96\" fill=\"#f1ebdd\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><g stroke=\"#161616\" stroke-width=\".7\" opacity=\".55\"><path d=\"M52 8 V104\"/><path d=\"M60 8 V104\"/><path d=\"M68 8 V104\"/><path d=\"M76 8 V104\"/><path d=\"M84 8 V104\"/><path d=\"M92 8 V104\"/><path d=\"M100 8 V104\"/><path d=\"M108 8 V104\"/><path d=\"M44 16 H116\"/><path d=\"M44 24 H116\"/><path d=\"M44 32 H116\"/><path d=\"M44 40 H116\"/><path d=\"M44 48 H116\"/><path d=\"M44 56 H116\"/><path d=\"M44 64 H116\"/><path d=\"M44 72 H116\"/><path d=\"M44 80 H116\"/><path d=\"M44 88 H116\"/><path d=\"M44 96 H116\"/></g><path d=\"M52 104 c-4-14 8-16 4-28 c10 8 12 18 8 28z\" fill=\"#b8241b\" opacity=\".9\"/><path d=\"M30 104 H130\" stroke=\"#161616\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"}];
+const HSRC="Sources: Delluc & Delluc 1979, cited in Tyldesley & Bahn, Quaternary Science Reviews 2 (1983); Antikensammlung Berlin, inv. F 2294; \u2018Putlog hole\u2019, Wikipedia and Designing Buildings Wiki; HKSAR Development Bureau memo, 17 Mar 2025; Scaffmag (SGB history) and Layher milestones; NBS reports NBSIR 78-1578 and 80-2010 (Willow Island); Scaffmag, Brand Access Solutions tribute to Daniel Palmer-Jones (2025); OSHA final rule, 61 FR 46026, 30 Aug 1996; HKSAR Government, Wang Fuk Court independent committee report, 29 Oct 2026.";
+const TY=()=>TYPES[st.ti],NP=()=>TY().layers.length;
+const $=id=>document.getElementById(id);
+const cv=$("cv"),ctx=cv.getContext("2d"),sheet=$("sheet");let W=0,H=0,DPR=1;
+function resize(){const r=sheet.getBoundingClientRect();DPR=Math.min(2,devicePixelRatio||1);W=r.width;H=r.height;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR)}
+new ResizeObserver(resize).observe(sheet);resize();
+
+const FOV=28*Math.PI/180,TH=Math.tan(FOV/2);
+const layerE=id=>ease(clamp(st.exT*1.4-(id-1)/Math.max(1,NP()-1)*.4,0,1));
+const gOff=(id,g)=>mul(g.off,layerE(id));
+function bounds(only){const mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];
+  for(const L of TY().layers){if(only&&L.id!==only)continue;for(const g of L.groups){const o=gOff(L.id,g);
+    for(let a=0;a<3;a++){mn[a]=Math.min(mn[a],g.mn[a]+o[a]);mx[a]=Math.max(mx[a],g.mx[a]+o[a])}}}return {mn,mx}}
+const anchorW=id=>{const L=TY().layers[id-1];return add(L.anchor,gOff(id,L.groups[0]))};
+function overview(yaw){return ()=>{const {mn,mx}=bounds();const asp=W/Math.max(1,H);
+  const top=58,bot=56,uh=Math.max(.3,(H-top-bot)/Math.max(1,H));
+  const h=(mx[1]-mn[1])+.3,w=Math.hypot(mx[0]-mn[0],mx[2]-mn[2])*.92;
+  const d=Math.max(h/uh/2/TH,w*(W<560?1.3:1.2)/2/(TH*asp))*st.zoom;const sh=((top-bot)/2)/H*2*d*TH;
+  return {t:[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2+sh,(mn[2]+mx[2])/2],d,yaw:yaw??st.cam.yaw,pitch:.2}}}
+function focusG(id){return ()=>{const {mn,mx}=bounds(id);const c=mul(add(mn,mx),.5);const r=len(sub(mx,mn))/2;
+  const asp=W/Math.max(1,H);const v=Object.assign({yaw:.55,pitch:.25},TY().views[id]||{});
+  const d=v.d??Math.max(1.4,r*1.05/TH,r/(TH*asp));return {t:c,d,yaw:v.yaw,pitch:v.pitch}}}
+function goTo(fn,dur=1100){const c=st.cam;st.tw={s:{t:[...c.t],d:c.d,yaw:c.yaw,pitch:c.pitch},fn,t0:performance.now(),dur:RM?1:dur}}
+const shortA=(a,b)=>{let d=(b-a)%TAU;if(d>Math.PI)d-=TAU;if(d<-Math.PI)d+=TAU;return a+d};
+
+/* ---------- render ---------- */
+const LIGHT=nrm([.4,.85,.5]);
+const PAL={board:[[205,198,184],[248,244,234]],steel:[[150,150,148],[232,232,230]],dark:[[40,40,40],[96,96,94]],tag:[[236,232,222],[252,250,244]],tagband:[[22,22,22],[22,22,22]],hi:[[200,145,0],[255,212,48]],hiDark:[[120,84,0],[170,122,8]],red:[[150,24,18],[214,48,38]]};
+function basis(){const c=st.cam,cp=Math.cos(c.pitch);const pos=add(c.t,mul([Math.sin(c.yaw)*cp,Math.sin(c.pitch),Math.cos(c.yaw)*cp],c.d));
+  const f=nrm(sub(c.t,pos)),r=nrm(cross(f,[0,1,0])),u=cross(r,f);return {pos,f,r,u,fo:(H/2)/TH}}
+function P(B,p){const d=sub(p,B.pos),z=dot(d,B.f);return {x:W/2+dot(d,B.r)*B.fo/z,y:H/2-st.cy-dot(d,B.u)*B.fo/z,z}}
+let hits=[];
+function render(now){
+  const B=basis(),ty=TY();ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,W,H);
+  const {mn,mx}=bounds();
+  // context (building, ceiling): faint
+  ctx.save();ctx.strokeStyle="rgba(22,22,22,.2)";ctx.lineWidth=1;ctx.beginPath();
+  for(const [a,b] of ty.ctx){const A=P(B,a),C=P(B,b);if(A.z<.1||C.z<.1)continue;ctx.moveTo(A.x,A.y);ctx.lineTo(C.x,C.y)}ctx.stroke();
+  // ground footprint
+  const gx0=Math.min(mn[0],-1)-.6,gx1=Math.max(mx[0],1)+.6,gz0=Math.min(mn[2],-1)-.6,gz1=Math.max(mx[2],1)+.6;
+  ctx.strokeStyle="rgba(22,22,22,.4)";ctx.setLineDash([6,5]);ctx.beginPath();
+  [[gx0,gz0],[gx1,gz0],[gx1,gz1],[gx0,gz1],[gx0,gz0]].forEach(([x,z],i)=>{const p=P(B,[x,0,z]);i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)});ctx.stroke();ctx.restore();
+
+  const items=[];
+  for(const Ly of ty.layers){const foc=st.focus===Ly.id||(!st.focus&&(window.__hl||[]).includes(Ly.id)),dim=st.focus&&st.focus!==Ly.id,alpha=dim?.2:1;
+    for(const g of Ly.groups){const o=gOff(Ly.id,g);
+      for(const q of g.prims){
+        if(q.k==="t"){const a=P(B,add(q.a,o)),b=P(B,add(q.b,o));if(a.z<.1||b.z<.1)continue;
+          items.push({k:"t",a,b,z:(a.z+b.z)/2,w:Math.max(q.kind?1.2:1.4,2*q.r*B.fo/((a.z+b.z)/2)),kind:q.kind,foc,alpha,id:Ly.id})}
+        else if(q.k==="p"){const pts=q.pts.map(p=>P(B,add(p,o)));if(pts.some(p=>p.z<.1))continue;
+          const w=q.pts.map(p=>add(p,o));let n=nrm(cross(sub(w[1],w[0]),sub(w[2],w[0])));const c=mul(w.reduce((s,p)=>add(s,p),[0,0,0]),1/w.length);
+          if(dot(n,sub(c,add(q.ref,o)))<0)n=mul(n,-1);const vd=nrm(sub(B.pos,c));let fac=dot(n,vd);
+          if(q.two)fac=Math.abs(fac);else if(fac<=0)continue;
+          const k=clamp(.25+.5*Math.abs(dot(n,LIGHT))+.3*fac,0,1);
+          const pal=foc&&q.kind!=="red"?(q.kind==="dark"||q.kind==="tagband"?PAL.hiDark:PAL.hi):PAL[q.kind];
+          const col=`rgb(${[0,1,2].map(i=>Math.round(lerp(pal[0][i],pal[1][i],k))).join(",")})`;
+          items.push({k:"p",pts,z:pts.reduce((s,p)=>s+p.z,0)/pts.length,col,e:q.kind!=="tagband",alpha,id:Ly.id})}
+        else if(q.k==="l"){const pts=q.pts.map(p=>P(B,add(p,o)));if(pts.some(p=>p.z<.1))continue;
+          items.push({k:"l",pts,z:pts.reduce((s,p)=>s+p.z,0)/pts.length-.01,alpha,foc,id:Ly.id})}
+        else{const a=P(B,add(q.a,o)),b=P(B,add(q.b,o));if(a.z<.1||b.z<.1)continue;
+          items.push({k:"s",a,b,z:(a.z+b.z)/2-.004,st:q.st,alpha,id:Ly.id})}
+      }}}
+  items.sort((a,b)=>b.z-a.z);hits=[];ctx.lineJoin="round";
+  for(const it of items){ctx.globalAlpha=it.alpha;
+    if(it.k==="t"){ctx.lineCap="round";ctx.beginPath();ctx.moveTo(it.a.x,it.a.y);ctx.lineTo(it.b.x,it.b.y);
+      if(it.kind){ctx.strokeStyle=it.foc?"#d49a00":(it.kind==="rope"?"#3b3b3b":"#161616");ctx.lineWidth=it.w+(it.foc?1.6:0);if(it.kind==="rope"&&!it.foc)ctx.setLineDash([5,3]);ctx.stroke();ctx.setLineDash([])}
+      else{ctx.strokeStyle="#161616";ctx.lineWidth=it.w+2.2;ctx.stroke();ctx.strokeStyle=it.foc?"#f5c518":"#e3e2df";ctx.lineWidth=it.w;ctx.stroke();
+        if(it.w>5){ctx.strokeStyle="rgba(255,255,255,.75)";ctx.lineWidth=Math.max(1,it.w*.18);ctx.beginPath();
+          const nx=-(it.b.y-it.a.y),ny=it.b.x-it.a.x,l=Math.hypot(nx,ny)||1,s=it.w*.22;ctx.moveTo(it.a.x+nx/l*s,it.a.y+ny/l*s);ctx.lineTo(it.b.x+nx/l*s,it.b.y+ny/l*s);ctx.stroke()}}
+      hits.push(it)}
+    else if(it.k==="p"){ctx.beginPath();it.pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fillStyle=it.col;ctx.fill();
+      if(it.e){ctx.strokeStyle="#161616";ctx.lineWidth=1;ctx.stroke()}hits.push(it)}
+    else if(it.k==="l"){ctx.beginPath();it.pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();
+      ctx.fillStyle=it.foc?"#f5c518":"#d6d5d1";ctx.fill();ctx.strokeStyle="#161616";ctx.lineWidth=.9;ctx.stroke()}
+    else{ctx.strokeStyle=it.st==="grain"?"rgba(22,22,22,.28)":"#161616";ctx.lineWidth=it.st==="grain"?.7:1.1;ctx.lineCap="butt";ctx.beginPath();ctx.moveTo(it.a.x,it.a.y);ctx.lineTo(it.b.x,it.b.y);ctx.stroke()}
+  }
+  ctx.globalAlpha=1;if(!st.focus)elevation();labels(B,now);
+}
+function elevation(){if(W<330||(W<560&&st.exT>.4))return;const ty=TY();let x0=1e9,x1=-1e9,y1=-1e9;
+  for(const [a,b] of ty.elev){x0=Math.min(x0,a[0],b[0]);x1=Math.max(x1,a[0],b[0]);y1=Math.max(y1,a[1],b[1])}
+  const hpx=Math.min(78,H*.13),s=hpx/y1,wpx=(x1-x0)*s;const s2=wpx>110?110/wpx:1,S=s*s2,ox=14,oy=16+y1*S;
+  ctx.save();ctx.globalAlpha=.9;ctx.strokeStyle="#161616";ctx.lineWidth=.8;ctx.beginPath();
+  for(const [a,b] of ty.elev){ctx.moveTo(ox+(a[0]-x0)*S,oy-a[1]*S);ctx.lineTo(ox+(b[0]-x0)*S,oy-b[1]*S)}ctx.stroke();
+  const dx=ox+(x1-x0)*S+7,top=parseFloat(ty.dim);ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(dx,oy);ctx.lineTo(dx,oy-top*S);ctx.moveTo(dx-3,oy);ctx.lineTo(dx+3,oy);ctx.moveTo(dx-3,oy-top*S);ctx.lineTo(dx+3,oy-top*S);ctx.stroke();
+  ctx.fillStyle="#161616";ctx.font='600 11px "IBM Plex Sans Condensed","IBM Plex Sans",sans-serif';ctx.textBaseline="middle";ctx.textAlign="left";ctx.direction="ltr";ctx.fillText(ty.dim,dx+5,oy-top*S/2);
+  ctx.font=`500 10.5px ${st.lang==="ar"?'"IBM Plex Sans Arabic",':''}"IBM Plex Sans",sans-serif`;ctx.direction=st.lang==="ar"?"rtl":"ltr";ctx.textAlign=st.lang==="ar"?"right":"left";
+  ctx.fillText(T[st.lang].elev,st.lang==="ar"?ox+(x1-x0)*S:ox,oy+11);ctx.restore()}
+
+const SIDE={};
+function labels(B,now){
+  const show=st.focus?1:clamp((ease(st.exT)-.55)/.45,0,1);if(show<=0)return;
+  const ty=TY(),ar=st.lang==="ar",other=ar?"en":"ar";const n=NP();const fs=W<520?(n>9?12.5:13):14.5,fs2=fs-3;
+  const f1=`600 ${fs}px ${ar?'"IBM Plex Sans Arabic",':''}"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif`;
+  const f2=`500 ${fs2}px ${ar?'':'"IBM Plex Sans Arabic",'}"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif`;
+  const fN=`700 ${fs-2}px "IBM Plex Sans Condensed","IBM Plex Sans",sans-serif`;
+  const ids=st.focus?[st.focus]:ty.layers.map(l=>l.id);const cx=st.focus?W/2:P(B,st.cam.t).x;
+  const its=ids.map(id=>{const a=P(B,anchorW(id));return {id,a,y:a.y,side:st.focus?(a.x<cx?1:-1):1,n1:ty.text[id-1][st.lang][0],n2:ty.text[id-1][other][0]}});
+  if(!st.focus)its.slice().sort((a,b)=>a.a.y-b.a.y).forEach((it,k)=>{it.side=k%2?1:-1});
+  let spread=0;for(const i of its)spread=Math.max(spread,Math.abs(i.a.x-cx));const R=spread+26;
+  const top=58,bot=H-48,gap=fs*2.7;
+  for(const s of[-1,1]){const g=its.filter(i=>i.side===s).sort((a,b)=>a.y-b.y);
+    for(let i=0;i<g.length;i++){g[i].y=clamp(g[i].y,top,bot);if(i&&g[i].y-g[i-1].y<gap)g[i].y=g[i-1].y+gap}
+    for(let i=g.length-1;i>=0;i--){if(g[i].y>bot)g[i].y=bot;if(i<g.length-1&&g[i+1].y-g[i].y<gap)g[i].y=g[i+1].y-gap}}
+  ctx.globalAlpha=show;ctx.textBaseline="middle";
+  for(const it of its){
+    ctx.font=fN;const nw=ctx.measureText("00").width+8;ctx.font=f1;ctx.direction=ar?"rtl":"ltr";const t1=ctx.measureText(it.n1).width;
+    ctx.font=f2;ctx.direction=ar?"ltr":"rtl";const t2=ctx.measureText(it.n2).width;const tw=Math.max(t1,t2),total=nw+6+tw,m=10;
+    const x0=st.focus?(it.side<0?m:W-m-total):(it.side<0?clamp(cx-R-total,m,W-m-total):clamp(cx+R,m,W-m-total));
+    const le=it.side<0?x0+total+5:x0-5,el=le+(it.side<0?12:-12);
+    ctx.strokeStyle="#161616";ctx.lineWidth=.9;ctx.beginPath();ctx.moveTo(it.a.x,it.a.y);ctx.lineTo(el,it.y);ctx.lineTo(le,it.y);ctx.stroke();
+    ctx.fillStyle="#161616";ctx.beginPath();ctx.arc(it.a.x,it.a.y,2.6,0,TAU);ctx.fill();
+    ctx.fillStyle="rgba(241,235,221,.93)";ctx.fillRect(x0-3,it.y-fs*.95,total+6,fs*2.05);
+    const nx=x0+nw+6,y1=it.y-fs*.3,y2=it.y+fs*.68;
+    if(st.focus===it.id){const k=ease(clamp((now-st.markT)/420,0,1)),dir=ar?-1:1,hx=ar?nx+tw:nx,wv=t1*k*dir;
+      ctx.fillStyle="rgba(232,180,0,.85)";ctx.beginPath();ctx.moveTo(hx-2*dir,y1-fs*.45);ctx.lineTo(hx+wv+2*dir,y1-fs*.52);ctx.lineTo(hx+wv+3*dir,y1+fs*.45);ctx.lineTo(hx-3*dir,y1+fs*.4);ctx.closePath();ctx.fill()}
+    ctx.fillStyle="#161616";ctx.fillRect(x0,y1-fs*.6,nw,fs*1.2);ctx.fillStyle="#f1ebdd";ctx.font=fN;ctx.direction="ltr";ctx.textAlign="center";ctx.fillText(String(it.id).padStart(2,"0"),x0+nw/2,y1+.5);
+    ctx.fillStyle="#161616";ctx.font=f1;ctx.direction=ar?"rtl":"ltr";ctx.textAlign=ar?"right":"left";ctx.fillText(it.n1,ar?nx+tw:nx,y1+.5);
+    ctx.fillStyle="#5d584f";ctx.font=f2;ctx.direction=ar?"ltr":"rtl";ctx.textAlign=ar?"right":"left";ctx.fillText(it.n2,ar?nx+tw:nx,y2);
+  }
+  ctx.globalAlpha=1;ctx.textAlign="left";ctx.direction="ltr";
+}
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;const sp=RM?100:1/1.5;
+  if(st.exT<st.ex)st.exT=Math.min(st.ex,st.exT+dt*sp);if(st.exT>st.ex)st.exT=Math.max(st.ex,st.exT-dt*sp);
+  const cyGoal=(st.focus||st.calc||st.info||st.use)?Math.min(H*.3,($(st.use?"useC":st.info?"info":st.calc?"calc":"card").offsetHeight+10)/2):0;st.cy=lerp(st.cy,cyGoal,1-Math.exp(-dt*7));
+  const c=st.cam;
+  if(st.tw){const t=st.tw,k=ease(clamp((now-t.t0)/t.dur,0,1)),g=t.fn();c.t=lerp3(t.s.t,g.t,k);c.d=lerp(t.s.d,g.d,k);c.yaw=lerp(t.s.yaw,shortA(t.s.yaw,g.yaw),k);c.pitch=lerp(t.s.pitch,g.pitch,k);if(k>=1)st.tw=null}
+  else if(st.focus){c.t=focusG(st.focus)().t}
+  else{const g=overview()();const k=1-Math.exp(-dt*7);c.t=lerp3(c.t,g.t,k);c.d=lerp(c.d,g.d,k);if(st.turn&&!st.drag)c.yaw+=dt*.18}
+  render(now);requestAnimationFrame(frame)}
+
+/* ---------- input ---------- */
+const ptr=new Map();let down=null,moved=0,pinch=null;
+const zoomBy=f=>{st.tw=null;if(st.focus)st.cam.d=clamp(st.cam.d*f,.4,60);else st.zoom=clamp(st.zoom*f,.3,2.5)};
+cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptr.size===1){down={x:e.clientX,y:e.clientY};moved=0}if(ptr.size===2){const [a,b]=[...ptr.values()];pinch=Math.hypot(a.x-b.x,a.y-b.y)}
+  st.drag=true;cv.classList.add("dragging")});
+cv.addEventListener("pointermove",e=>{if(!ptr.has(e.pointerId))return;const p=ptr.get(e.pointerId),dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;
+  if(ptr.size===1){moved+=Math.abs(dx)+Math.abs(dy);if(moved>6){st.tw=null;st.cam.yaw-=dx*.008;st.cam.pitch=clamp(st.cam.pitch+dy*.005,-.3,1.25)}}
+  else if(ptr.size===2&&pinch){const [a,b]=[...ptr.values()],d=Math.hypot(a.x-b.x,a.y-b.y);zoomBy(pinch/d);pinch=d;moved=99}});
+function up(e){if(!ptr.has(e.pointerId))return;ptr.delete(e.pointerId);if(!ptr.size){st.drag=false;cv.classList.remove("dragging");
+  if(moved<=6&&down){const r=cv.getBoundingClientRect();tap(down.x-r.left,down.y-r.top)}pinch=null}}
+cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
+cv.addEventListener("wheel",e=>{e.preventDefault();zoomBy(Math.exp(e.deltaY*.0012))},{passive:false});
+function segD(x,y,a,b){const vx=b.x-a.x,vy=b.y-a.y,t=clamp(((x-a.x)*vx+(y-a.y)*vy)/(vx*vx+vy*vy||1),0,1);return Math.hypot(x-a.x-vx*t,y-a.y-vy*t)}
+function inPoly(x,y,p){let s=false;for(let i=0,j=p.length-1;i<p.length;j=i++)if(((p[i].y>y)!==(p[j].y>y))&&(x<(p[j].x-p[i].x)*(y-p[i].y)/(p[j].y-p[i].y+1e-9)+p[i].x))s=!s;return s}
+function tap(x,y){for(let i=hits.length-1;i>=0;i--){const h=hits[i];if(h.alpha<.3)continue;
+    if(h.k==="t"?segD(x,y,h.a,h.b)<h.w/2+6:inPoly(x,y,h.pts)){select(h.id);return}}
+  if(st.focus)closeF()}
+
+/* ---------- UI ---------- */
+function select(id){st.calc=false;st.info=false;st.use=false;st.focus=id;st.done=false;st.markT=performance.now()+(RM?0:700);goTo(focusG(id));ui()}
+function closeF(){st.focus=0;goTo(overview(st.cam.yaw));ui()}
+function showHist(){st.hist=true;st.focus=0;st.calc=false;st.info=false;st.use=false;try{history.replaceState(null,"","#history")}catch(e){}ui();$("hist").scrollTop=0}
+function setType(i){if(i===st.ti&&!st.hist)return;const was=st.hist;st.hist=false;if(i===st.ti&&was){try{history.replaceState(null,"","#"+TYPES[i].key)}catch(e){}ui();return}st.ti=i;st.focus=0;st.calc=false;st.info=false;st.use=false;st.done=false;st.zoom=1;st.tw=null;
+  st.exT=0;st.ex=0;const g=overview(.6)();st.cam.t=g.t;st.cam.d=g.d;st.cam.yaw=.6;st.cam.pitch=.2;
+  try{history.replaceState(null,"","#"+TYPES[i].key)}catch(e){}
+  ui();setTimeout(()=>{if(st.ti===i){st.ex=1;ui()}},RM?0:700)}
+$("next").onclick=()=>{if(!st.focus){st.done=false;select(1);return}if(st.focus<NP())select(st.focus+1);else{st.done=true;closeF()}};
+$("prev").onclick=()=>{if(st.focus>1)select(st.focus-1);else closeF()};
+$("close").onclick=closeF;
+$("explode").onclick=()=>{st.ex=st.ex?0:1;ui()};
+$("turn").onclick=()=>{st.turn=!st.turn;ui()};
+$("who").onclick=()=>{st.info=!st.info;st.calc=false;st.use=false;if(st.info&&st.focus){st.focus=0;goTo(overview(st.cam.yaw))}ui()};
+$("iClose").onclick=()=>{st.info=false;ui()};
+$("load").onclick=()=>{st.info=false;st.use=false;st.calc=!st.calc;if(st.calc&&st.focus){st.focus=0;goTo(overview(st.cam.yaw))}ui()};
+$("kClose").onclick=()=>{st.calc=false;ui()};
+$("kLen").oninput=$("kWid").oninput=()=>calcOut();
+function calcOut(){const k=TK[st.lang],R=[122,244,366][st.duty];
+  const Lm=clamp(parseFloat($("kLen").value)||0,0,10),Wm=clamp(parseFloat($("kWid").value)||0,0,10),A=Lm*Wm,swl=Math.floor(A*R);
+  const ex=[];for(let n=1;n<=4;n++){const m=swl-n*100;if(m>=0)ex.push(k.ppl(n,m))}
+  $("kOut").innerHTML="";const b=document.createElement("b");b.textContent=k.res(swl);$("kOut").append(b,document.createElement("br"),k.math(A.toFixed(2),R));
+  if(ex.length){$("kOut").append(document.createElement("br"),k.eg+" "+ex.slice(0,3).join(k.or))}}
+$("reset").onclick=()=>{st.focus=0;st.zoom=1;goTo(overview(.6));ui()};
+$("lang").onclick=()=>{st.lang=st.lang==="en"?"ar":"en";try{localStorage.setItem("ba-scaffold-lang",st.lang)}catch(e){}ui()};
+addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(h==="history"){showHist();return}const i=TYPES.findIndex(t=>t.key===h);if(i>=0)setType(i)});
+addEventListener("keydown",e=>{if(e.target.tagName==="BUTTON"&&(e.key===" "||e.key==="Enter"))return;
+  if(e.key==="ArrowRight")$(st.lang==="ar"?"prev":"next").click();if(e.key==="ArrowLeft")$(st.lang==="ar"?"next":"prev").click();if(e.key==="Escape"&&st.use){st.use=false;ui()}else if(e.key==="Escape"&&st.focus)closeF()});
+const RT={
+  en:{u:"Your check",c:"Inspector checks",e:"Engineer verifies",crit:"Critical",btn:"Who checks",t:"Who checks what",ex:"Your check does not replace the employer’s inspection, training and supervision. The arrangements shown are examples, not assembly instructions. Actual bracing, support, platform and tie requirements depend on the approved configuration and the maker’s instructions.",
+    roles:[["u","Before you climb, every time: tag present and in date (tag rules follow the site procedure), guardrails and toe boards complete, boards in place, access clear, no visible damage, settlement or missing parts."],
+           ["c","A competent person inspects before each work shift and after anything that could affect the scaffold (storm, impact, alteration). Tags are issued, changed or removed only by people authorised under the site procedure."],
+           ["e","All scaffolds follow an approved, suitable configuration. Certain types, heights, loads or supports (cantilever, suspended, very tall, heavily loaded, unusual supports) need additional engineering design or verification."]],
+    stop:"<b>Stop work if:</b> no tag or a red tag; anything missing, damaged or changed; the ground is settling or washed out; storm or high wind; closer to power lines than the clearance in OSHA 1926.451(f)(6) and your site’s electrical procedure (it depends on voltage and insulation); the load is more than the scaffold is rated for; materials could fall on people below without protection; or anyone uses boxes, barrels or other makeshift devices to gain height."},
+  ar:{u:"افحص بنفسك",c:"يفحصه المفتش",e:"يتحقق منه المهندس",crit:"حرج",btn:"مين يفحص",t:"مين يفحص إيش",ex:"فحصك ما يغني عن فحص صاحب العمل وتدريبه وإشرافه. الترتيبات اللي في الرسمات أمثلة، مو تعليمات تركيب. التدعيم والإسناد والمنصات والربطات الفعلية تعتمد على التركيب المعتمد وتعليمات الشركة المصنّعة.",
+    roles:[["u","قبل ما تطلع، كل مرة: البطاقة موجودة وتاريخها ساري (قواعد البطاقات حسب إجراءات الموقع)، والدرابزين وحاجز القدم كاملين، والألواح في مكانها، والطريق للسلّم فاضي، وما فيه ضرر ظاهر أو هبوط أو قطع ناقصة."],
+           ["c","شخص مختص يفحص قبل كل وردية، وبعد أي شي ممكن يأثر على السقالة (عاصفة، صدمة، تعديل). والبطاقة ما يصدرها أو يغيّرها أو يشيلها إلا الأشخاص المخوّلين حسب إجراءات الموقع."],
+           ["e","كل السقالات لازم تمشي على تركيب معتمد ومناسب. وبعض الأنواع والارتفاعات والأحمال والمساند (البارزة، المعلّقة، العالية جدًا، المحمّلة بقوة، أو على مساند غير عادية) تحتاج تصميم أو تحقق هندسي إضافي."]],
+    stop:"<b>أوقف الشغل إذا:</b> ما فيه بطاقة أو البطاقة حمراء؛ أو فيه شي ناقص أو متضرّر أو متغيّر؛ أو الأرض تهبط أو انجرفت؛ أو فيه عاصفة أو هواء قوي؛ أو أنت أقرب لخطوط الكهرباء من المسافة اللي في OSHA 1926.451(f)(6) وإجراءات الكهرباء في موقعك (تعتمد على الجهد والعزل)؛ أو الحمل أكثر من المسموح للسقالة؛ أو ممكن تطيح أغراض على الناس تحت بدون حماية؛ أو أحد يستخدم صناديق أو براميل أو أي شي مرتجل عشان يعلى."}};
+const TK={
+  en:{btn:"Load",t:"Safe load per bay",d:["Light","Medium","Heavy"],L:"Length",W:"Width",res:w=>`${w} kg per bay`,
+    math:(a,r)=>`${a} m² × ${r} kg/m²`,eg:"For example:",or:", or ",ppl:(n,m)=>`${n} ${n>1?"people":"person"} + ${m} kg`,
+    note:"<b>Illustrative only.</b> Do not use these figures to authorise loading: the allowed load comes from the approved design, the maker and site rules. Duty classes from OSHA 1926 Subpart L, Appendix A (guidance), load spread evenly, never piled in one spot. 100 kg per person with tools is a planning assumption."},
+  ar:{btn:"الحمل",t:"الحمل المسموح لكل فتحة",d:["خفيف","متوسط","ثقيل"],L:"الطول",W:"العرض",res:w=>`${w} كجم لكل فتحة`,
+    math:(a,r)=>`${a} م² × ${r} كجم/م²`,eg:"مثلاً:",or:"، أو ",ppl:(n,m)=>`${n===1?"شخص":n===2?"شخصين":n+" أشخاص"} + ${m} كجم`,
+    note:"<b>للتوضيح بس.</b> لا تعتمد على هالأرقام عشان تسمح بالتحميل: الحمل المسموح يجي من التصميم المعتمد والشركة المصنّعة وقواعد الموقع. التصنيفات من OSHA 1926 الجزء L، الملحق A (إرشادي)، والحمل موزّع بالتساوي ومو مكوّم في مكان واحد. حساب الشخص مع العدّة 100 كجم مجرد افتراض للتخطيط."}};
+const USE={"system": {"en": {"best": ["Long or tall building faces: plastering, cladding, painting, glazing", "Plant and industrial jobs around tanks, columns and big equipment", "Large access builds that need many working levels"], "why": "Fixed connection points give every lift the same spacing, so it goes up fast and is easy to inspect.", "alt": [["tube", "The shape is awkward, with pipes or steelwork in the way"], ["tower", "It’s a short, low job in one spot"], ["stair", "Many people go up and down all day"]]}, "ar": {"best": ["واجهات المباني الطويلة أو العالية: لياسة، تكسية، دهان، تركيب زجاج", "شغل المصانع والمحطات حوالين الخزانات والأعمدة والمعدات الكبيرة", "سقالات وصول كبيرة تحتاج مستويات شغل كثيرة"], "why": "نقاط الوصل الثابتة تخلّي كل دور بنفس المسافة، فتنركّب بسرعة وفحصها سهل.", "alt": [["tube", "الشكل معقّد وفيه مواسير أو حديد معترض"], ["tower", "الشغلة قصيرة وعلى ارتفاع قليل وفي مكان واحد"], ["stair", "ناس كثير يطلعون وينزلون طول اليوم"]]}}, "tube": {"en": {"best": ["Around pipe racks, vessels and steelwork in plants", "Buildings with odd shapes, curves, setbacks or uneven ground", "Shutdown and maintenance jobs where the scaffold must fit around what’s there"], "why": "Any tube can go at any length and angle, so it fits where ready-made parts can’t. It is slower and has more fittings to check.", "alt": [["system", "The wall is long and plain"], ["frame", "It’s a simple, low wall"], ["tower", "It’s a short job that moves around"]]}, "ar": {"best": ["حوالين حوامل المواسير والخزانات والحديد في المصانع", "مباني أشكالها غريبة، فيها انحناءات أو تراجعات أو أرض مو مستوية", "شغل الإيقاف والصيانة اللي لازم السقالة فيه تلف حوالين الموجود"], "why": "أي ماسورة تقدر تحطها بأي طول وأي زاوية، فتركب في أماكن القطع الجاهزة ما تركب فيها. بس أبطأ، وفيها مشابك أكثر تحتاج فحص.", "alt": [["system", "الجدار طويل وسادة"], ["frame", "جدار بسيط وارتفاعه قليل"], ["tower", "شغلة قصيرة تتنقّل من مكان لمكان"]]}}, "frame": {"en": {"best": ["Low to medium height flat walls: villas, low-rise blocks, boundary walls", "Block work, plastering, painting and facade cleaning", "Inside work on walls and ceilings at moderate heights"], "why": "Few parts and ready-made frames, so a small crew can put it up quickly.", "alt": [["tube", "The building has an odd shape"], ["system", "It’s tall or needs a heavier duty rating, to the approved design"], ["tower", "You need to roll it from spot to spot"]]}, "ar": {"best": ["جدران مستوية بارتفاع قليل لمتوسط: فلل، مباني قليلة الأدوار، أسوار", "بناء البلوك، لياسة، دهان، وتنظيف الواجهات", "شغل داخلي على الجدران والأسقف بارتفاع متوسط"], "why": "قطعها قليلة والإطارات جاهزة، فطاقم صغير يركّبها بسرعة.", "alt": [["tube", "المبنى شكله غريب"], ["system", "عالية أو تحتاج تتحمّل حمل أثقل، حسب التصميم المعتمد"], ["tower", "تحتاج تدفّها من مكان لمكان"]]}}, "stair": {"en": {"best": ["Getting crews onto a roof, deck or the upper levels of a scaffold", "Access into deep excavations or large tanks during construction", "Jobs where people go up and down many times a day"], "why": "Using stairs with a handrail to hold is safer and less tiring than climbing ladders again and again. It is a way up, not a working platform.", "alt": [["system", "You need a platform to work on, not just a way up"], ["tower", "Only one or two people go up, for a short job"]]}, "ar": {"best": ["طلوع الطاقم للسطح أو المنصة أو الأدوار العالية من السقالة", "النزول للحفريات العميقة أو الخزانات الكبيرة وقت الإنشاء", "شغل الناس فيه يطلعون وينزلون مرات كثيرة في اليوم"], "why": "الطلوع بالدرج وأنت ماسك الدرابزين أأمن وأقل تعب من تسلّق السلّم كل شوي. هو طريق للطلوع، مو منصة شغل.", "alt": [["system", "تحتاج منصة تشتغل عليها، مو بس طريق للطلوع"], ["tower", "واحد أو اثنين بس بيطلعون لشغلة قصيرة"]]}}, "tower": {"en": {"best": ["Indoor jobs on flat floors: lights, ceiling tiles, AC diffusers, sprinkler heads", "Cable tray, ducting and small fixing work along a room or corridor", "Short painting or repair jobs on walls in halls and warehouses"], "why": "It rolls to the next spot, so you don’t rebuild every few metres. Wheels locked while anyone works on it.", "alt": [["system", "It’s tall, outdoors in wind, or on ground that needs preparing to carry a scaffold"], ["bird", "You need to cover a whole high ceiling at once"], ["trestle", "It’s very low, light work inside a room"]]}, "ar": {"best": ["شغل داخلي على أرض مستوية: إضاءة، بلاط السقف، فتحات المكيف، رشاشات الحريق", "حوامل الكيابل والدكت وشغل التركيب الصغير على طول الغرفة أو الممر", "دهان أو تصليح قصير للجدران في الصالات والمستودعات"], "why": "تدفّه للمكان الجاي بدل ما تفكّ وتركّب كل كم متر. العجلات مقفلة طول ما فيه أحد يشتغل عليه.", "alt": [["system", "الارتفاع عالي، أو برّا مع هواء، أو الأرض تحتاج تجهيز عشان تتحمّل سقالة"], ["bird", "تحتاج تغطّي سقف عالي كامل مرة وحدة"], ["trestle", "شغل خفيف وعلى ارتفاع قليل جدًا داخل غرفة"]]}}, "bird": {"en": {"best": ["High ceilings over big areas: halls, atriums, auditoriums, mosques, warehouses", "Installing false ceilings or lighting, or painting a whole ceiling", "Work where many people work across the ceiling at the same time"], "why": "One big deck covers the whole room, so the crew can work anywhere under the ceiling without moving the scaffold.", "alt": [["tower", "The work is in a few small spots"], ["system", "The work is on a wall, not a ceiling"]]}, "ar": {"best": ["أسقف عالية فوق مساحات كبيرة: صالات، أتريوم، قاعات، مساجد، مستودعات", "تركيب أسقف معلّقة أو إضاءة، أو دهان سقف كامل", "شغل يحتاج ناس كثير يشتغلون على السقف في نفس الوقت"], "why": "منصة وحدة كبيرة تغطّي الغرفة كلها، فالطاقم يشتغل في أي مكان تحت السقف بدون ما تنقل السقالة.", "alt": [["tower", "الشغل في كم مكان صغير"], ["system", "الشغل على جدار، مو سقف"]]}}, "cantilever": {"en": {"best": ["Upper floors when the ground below can’t carry a scaffold", "Over a road, walkway or entrance that must stay open", "Over a lower roof, canopy or podium you can’t build on"], "why": "It is supported from the building itself, so the ground below stays free. It always needs an engineered design.", "alt": [["system", "There is firm ground below that can carry a scaffold"], ["susp", "It’s a tall facade and the work moves up and down"]]}, "ar": {"best": ["الأدوار العالية لما الأرض تحت ما تتحمّل سقالة", "فوق شارع أو ممر أو مدخل لازم يظل مفتوح", "فوق سطح أوطى أو مظلّة أو بوديوم ما تقدر تركّب عليه"], "why": "مسنودة على المبنى نفسه، فالأرض تحت تظل فاضية. ودايم تحتاج تصميم هندسي.", "alt": [["system", "فيه أرض صلبة تحت تتحمّل سقالة"], ["susp", "واجهة عالية والشغل يطلع وينزل"]]}}, "susp": {"en": {"best": ["High-rise facades: window cleaning, glazing replacement, sealant and facade repair", "Painting or inspecting tall outside walls", "Tall structures like chimneys and silos"], "why": "No tall scaffold built from the ground. The stage moves up and down the face to wherever the work is.", "alt": [["frame", "The building is low"], ["system", "The work needs heavy materials or many people at once"]]}, "ar": {"best": ["واجهات الأبراج: تنظيف الشبابيك، تغيير الزجاج، السيليكون، وتصليح الواجهة", "دهان أو فحص الجدران الخارجية العالية", "منشآت عالية مثل المداخن والصوامع"], "why": "ما تحتاج تبني سقالة عالية من الأرض. المنصة تطلع وتنزل على الواجهة للمكان اللي فيه الشغل.", "alt": [["frame", "المبنى ارتفاعه قليل"], ["system", "الشغل يحتاج مواد ثقيلة أو ناس كثير في نفس الوقت"]]}}, "trestle": {"en": {"best": ["Low, light work inside rooms: plastering, painting, fixing near the ceiling in houses and offices", "Short jobs on a flat, firm floor"], "why": "Quick to set up and light to carry from room to room. Only for low heights.", "alt": [["tower", "You need more height or will move along a corridor"], ["frame", "It’s a long wall or a longer job"]]}, "ar": {"best": ["شغل خفيف وعلى ارتفاع قليل داخل الغرف: لياسة، دهان، تركيب قريب من السقف في البيوت والمكاتب", "شغلات قصيرة على أرض مستوية وصلبة"], "why": "تنركّب بسرعة وخفيفة تنشال من غرفة لغرفة. بس للارتفاعات القليلة.", "alt": [["tower", "تحتاج ارتفاع أكثر أو بتمشي على طول ممر"], ["frame", "جدار طويل أو شغلة أطول"]]}}};
+const UT={en:{btn:"Best for",t:"When to use it",best:"Use it for",why:"Why this one",alt:"Pick another when",note:"Examples show typical applications only. Final scaffold selection depends on ground conditions, loading, height, access, stability, manufacturer requirements, and the approved design."},
+  ar:{btn:"يناسب إيش",t:"متى تستخدمها",best:"تنفع لـ",why:"ليش هذي",alt:"اختار غيرها إذا",note:"أمثلة لاستخدامات معتادة بس. اختيار السقالة النهائي يعتمد على الأرض، والحمل، والارتفاع، وطريقة الوصول، والثبات، وتعليمات الشركة المصنّعة، والتصميم المعتمد."}};
+$("useB").onclick=()=>{st.use=!st.use;st.calc=false;st.info=false;if(st.use&&st.focus){st.focus=0;goTo(overview(st.cam.yaw))}ui()};
+$("uClose").onclick=()=>{st.use=false;ui()};
+function useUI(){const L=st.lang,ar=L==="ar",u=UT[L],ty=TY(),d=(USE[ty.key]||{})[L];
+  $("useB").textContent=u.btn;$("useB").setAttribute("aria-pressed",String(!!st.use));$("useC").classList.toggle("on",!!st.use&&!st.hist);
+  if(!d)return;$("uT").textContent=u.t+": "+ty.name[L];$("uNote").textContent=u.note;
+  const B=$("uBody");B.innerHTML="";
+  const sec=(lab,css)=>{const w=document.createElement("div");w.className="ul";const b=document.createElement("b");b.textContent=lab;b.style.cssText=css;w.appendChild(b);B.appendChild(w);return w};
+  {const w=sec(u.best,"background:#e8b400;color:#161616");const ul=document.createElement("ul");d.best.forEach(x=>{const li=document.createElement("li");li.textContent=x;ul.appendChild(li)});w.appendChild(ul)}
+  {const w=sec(u.why,"background:#161616;color:#f1ebdd");const p=document.createElement("p");p.textContent=d.why;w.appendChild(p)}
+  {const w=sec(u.alt,"border:1.5px solid #161616;color:#161616");const g=document.createElement("div");g.className="alts";
+   d.alt.forEach(([k,txt])=>{const i=TYPES.findIndex(t=>t.key===k);if(i<0)return;const b=document.createElement("button");
+     const a=document.createElement("span");a.textContent=txt;const z=document.createElement("span");z.textContent=(ar?"← ":"")+TYPES[i].name[L]+(ar?"":" →");
+     b.append(a,z);b.onclick=()=>{setType(i);st.use=true;ui();$("useC").scrollTop=0};g.appendChild(b)});w.appendChild(g)}}
+function ui(){const t=T[st.lang],ar=st.lang==="ar",o=ar?"en":"ar",ty=TY();useUI();
+  {const r=RT[st.lang];$("who").textContent=r.btn;$("who").setAttribute("aria-pressed",String(st.info));$("iT").textContent=r.t;
+   $("iRoles").innerHTML="";for(const [k,x] of r.roles){const li=document.createElement("li");const b=document.createElement("b");b.className="r-"+k;b.textContent=r[k];
+     b.style.cssText=k==="u"?"background:#e8b400":k==="c"?"background:#161616;color:#f1ebdd":"border:1.5px solid #161616";const sp=document.createElement("span");sp.textContent=x;li.append(b,sp);$("iRoles").appendChild(li)}
+   $("iStop").innerHTML=r.stop;$("iEx").textContent=r.ex;$("info").classList.toggle("on",st.info)}
+  {const k=TK[st.lang];$("load").textContent=k.btn;$("load").setAttribute("aria-pressed",String(st.calc));$("kT").textContent=k.t;$("kL").textContent=k.L;$("kW").textContent=k.W;$("kNote").innerHTML=k.note;document.querySelectorAll(".u").forEach(e=>e.textContent=ar?"م":"m");
+   const D=$("kDuty");if(!D.children.length)for(let i=0;i<3;i++){const b=document.createElement("button");b.onclick=()=>{st.duty=i;ui()};D.appendChild(b)}
+   [...D.children].forEach((b,i)=>{b.textContent=k.d[i];const s=document.createElement("small");s.textContent=[122,244,366][i]+(ar?" كجم/م²":" kg/m²");b.append(s);b.setAttribute("aria-pressed",String(i===st.duty))});
+   $("calc").classList.toggle("on",st.calc);calcOut()}
+  document.documentElement.lang=st.lang;document.documentElement.dir=ar?"rtl":"ltr";
+  $("title").textContent=t.title;$("subtitle").textContent=ty.desc[st.lang];$("hint").textContent=t.hint;
+  $("turn").textContent=t.turn;$("turn").setAttribute("aria-pressed",String(st.turn));$("reset").textContent=t.reset;
+  $("lang").textContent=t.lang;$("lang").lang=o;
+  const nav=$("types");if(nav.children.length!==TYPES.length+1){nav.innerHTML="";TYPES.forEach((x,i)=>{const b=document.createElement("button");b.onclick=()=>setType(i);nav.appendChild(b)});const hb=document.createElement("button");hb.onclick=showHist;nav.appendChild(hb)}
+  TYPES.forEach((x,i)=>{const b=nav.children[i];b.innerHTML="";b.append(x.name[st.lang]);const s=document.createElement("small");s.textContent=x.name[o];s.lang=o;b.append(s);
+    b.setAttribute("aria-current",String(i===st.ti&&!st.hist));if(i===st.ti&&!st.hist)b.scrollIntoView({block:"nearest",inline:"nearest"})});
+  {const hb=nav.children[TYPES.length];hb.innerHTML="";hb.append(ar?"التاريخ":"History");const s2=document.createElement("small");s2.textContent=ar?"History":"التاريخ";s2.lang=o;hb.append(s2);hb.setAttribute("aria-current",String(st.hist));if(st.hist)hb.scrollIntoView({block:"nearest",inline:"nearest"})}
+  document.querySelector(".app").classList.toggle("histmode",st.hist);$("hist").hidden=!st.hist;
+  if(st.hist){$("subtitle").textContent=ar?"كيف وصلت السقالات لشكلها اليوم، وليش كل قاعدة موجودة.":"How scaffolds got here, and why each rule exists.";
+    const L=k=>ar?k+"a":k;const H=$("hist");if(H.dataset.lang!==st.lang){H.dataset.lang=st.lang;H.innerHTML="";
+      const ip=document.createElement("p");ip.className="intro";ip.textContent=ar?"عشر محطات من الكهوف لليوم. كل وحدة غيّرت طريقة بناء السقالات أو فحصها. النقاط الحمراء حوادث حقيقية.":"Ten moments from the caves to today. Each one changed how scaffolds are built or checked. Red markers are real incidents.";H.appendChild(ip);
+      const ol=document.createElement("ol");HIST.forEach(h=>{const li=document.createElement("li");if(h.k==="lesson")li.className="lesson";
+        const yr=document.createElement("span");yr.className="yr";yr.textContent=ar?h.ya:h.y;li.appendChild(yr);
+        const hc=document.createElement("div");hc.className="hc";hc.innerHTML=h.svg;const tx=document.createElement("div");
+        const h3=document.createElement("h3");h3.textContent=ar?h.ta:h.t;const sm=document.createElement("small");sm.textContent=ar?h.t:h.ta;sm.lang=o;h3.appendChild(sm);
+        const p=document.createElement("p");p.textContent=ar?h.da:h.d;const ld=document.createElement("div");ld.className="led";const lb=document.createElement("b");
+        lb.textContent=h.k==="lesson"?(ar?"الدرس":"Lesson"):(ar?"أدّى إلى":"Led to");const ls=document.createElement("span");ls.textContent=ar?h.la:h.l;ld.append(lb,ls);
+        tx.append(h3,p,ld);hc.appendChild(tx);li.appendChild(hc);ol.appendChild(li)});H.appendChild(ol);
+      const sp=document.createElement("p");sp.className="src";sp.textContent=HSRC;H.appendChild(sp)}}
+  $("tbName").textContent=ty.name[st.lang];$("tbSub").textContent=ty.name[o];
+  $("explode").textContent=st.ex?t.together:t.apart;$("prev").textContent=t.back;
+  $("next").textContent=!st.focus?(st.done?t.again:t.start):(st.focus===NP()?t.done:t.next);
+  $("bar").classList.toggle("f",!!st.focus);sheet.classList.toggle("focus",!!(st.focus||st.calc||st.info||st.use));$("card").classList.toggle("on",!!st.focus);
+  if(st.focus){const d=ty.text[st.focus-1][st.lang];$("cNum").textContent=String(st.focus).padStart(2,"0");$("cName").textContent=d[0];
+    $("cName2").textContent=ty.text[st.focus-1][o][0];$("cName2").lang=o;$("cDoes").textContent=d[1];{const r=(ty.role[st.focus-1]||"c");const lo=r.toLowerCase();const RL=RT[st.lang];
+     $("cChkL").textContent=RL[lo];$("cChkL").className="role r-"+lo;$("cCrit").textContent=RL.crit;$("cCrit").classList.toggle("on",r!==lo)}$("cChk").textContent=d[2];$("cStop").textContent=d[3]||"";{const Y=ty.text[st.focus-1].you;$("cYou").hidden=!Y;if(Y){$("cYou").querySelector("b").textContent=RT[st.lang].u;$("cYou").querySelector("span").textContent=Y[st.lang]}}}
+}
+{const g=overview(.6)();st.cam.t=g.t;st.cam.d=g.d}
+if(RM)st.exT=st.ex=1;else setTimeout(()=>{st.ex=1;ui()},900);
+ui();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
